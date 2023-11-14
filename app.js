@@ -5,23 +5,26 @@ const path = require('path');
 
 const aircraftsXMLPath = 'aircrafts.xml';
 
-
 async function downloadAndProcessAircrafts() {
-    const aircraftsXMLFilename = 'aircrafts.xml'; // El nombre del archivo en el bucket
-    const localXMLPath = path.join(__dirname, 'data', aircraftsXMLFilename); // La ruta local donde se guardará el archivo
-  
-    try {
-      console.log(`Iniciando la descarga de ${aircraftsXMLFilename}...`);
-      await downloadFile(aircraftsXMLFilename); // Descarga el archivo XML
-      console.log(`Descargado ${aircraftsXMLFilename} a ${localXMLPath}`);
-      console.log(`Iniciando el procesamiento de ${localXMLPath}...`);
-      await processAircraftsXML(localXMLPath); // Procesa el archivo y guarda el resultado como JSON
-    } catch (error) {
-      console.error('Error al descargar y procesar aircrafts.xml:', error);
-    }
-  }
+  const aircraftsXMLFilename = 'aircrafts.xml'; // El nombre del archivo en el bucket
+  const localXMLPath = path.join('data', aircraftsXMLFilename); // La ruta local donde se guardará el archivo XML
 
-// Aquí puedes añadir tus rutas y middleware
+  try {
+    // Descarga el archivo XML
+    await downloadFile(aircraftsXMLFilename);
+    console.log(`Descargado ${aircraftsXMLFilename} a ${localXMLPath}`);
+
+    // Procesa el archivo XML y guarda el resultado como JSON
+    await processAircraftsXML(localXMLPath);
+    console.log(`El archivo XML ha sido procesado y convertido a JSON.`);
+
+    // Elimina el archivo XML local después de procesarlo
+    await fs.promises.unlink(localXMLPath);
+    console.log(`El archivo XML ${localXMLPath} ha sido eliminado.`);
+  } catch (error) {
+    console.error('Error al descargar y procesar aircrafts.xml:', error);
+  }
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -29,8 +32,7 @@ app.listen(PORT, () => {
 });
 
 // listFiles();
-// downloadFlightData();
-
+downloadFlightData();
 downloadAndProcessAircrafts();
 
 
