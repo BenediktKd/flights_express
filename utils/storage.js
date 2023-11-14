@@ -4,6 +4,8 @@ const path = require('path');
 const { parseString } = require('xml2js');
 const util = require('util');
 const csv = require('csv-parser'); // Asegúrate de que esta línea esté en la parte superior de storage.js
+const yaml = require('js-yaml');
+
 
 
 const parseStringPromise = util.promisify(parseString); // Convertir parseString en una versión que retorna promesas
@@ -111,7 +113,49 @@ async function processAirportsCSV(filePath) {
       .on('error', reject);
   });
 }
+
+// Función para procesar el archivo passengers.yaml y convertirlo a JSON
+async function processPassengersYAML(filePath) {
+  try {
+    // Leer el contenido del archivo YAML
+    const yamlContent = await fs.promises.readFile(filePath, 'utf-8');
+    
+    // Convertir el contenido YAML en un objeto JavaScript
+    const passengers = yaml.load(yamlContent);
+    
+    // Define el archivo de salida JSON
+    const jsonFilePath = path.join('data', 'passengers.json');
+    
+    // Escribe el resultado procesado en un archivo JSON
+    await fs.promises.writeFile(jsonFilePath, JSON.stringify(passengers, null, 2), 'utf-8');
+    console.log(`Archivo passengers.yaml procesado y guardado como JSON en ${jsonFilePath}`);
+  } catch (error) {
+    console.error('Error al procesar passengers.yaml:', error);
+  }
+}
+  
+async function processTicketsCSV(filePath) {
+  const tickets = [];
+
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (row) => tickets.push(row))
+      .on('end', () => {
+        // Aquí ya tienes todos los datos del CSV en la variable tickets
+        // Escribimos los datos en un archivo JSON en el directorio 'data'
+        const jsonFilePath = path.join('data', 'tickets.json');
+        fs.promises.writeFile(jsonFilePath, JSON.stringify(tickets, null, 2), 'utf-8')
+          .then(() => {
+            console.log(`Archivo tickets.csv procesado y guardado como JSON en ${jsonFilePath}`);
+            resolve();
+          })
+          .catch(reject);
+      })
+      .on('error', reject);
+  });
+}
   
   
-  
-  module.exports = { storage, bucket, listFiles, downloadFile, downloadFlightData, processAircraftsXML, processAirportsCSV};
+  module.exports = { storage, bucket, listFiles, downloadFile, downloadFlightData, processAircraftsXML, processAirportsCSV, 
+    processPassengersYAML, processTicketsCSV};
