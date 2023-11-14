@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express();
-const { listFiles, downloadFlightData, downloadFile , processAircraftsXML } = require('./utils/storage');
+const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, processAirportsCSV } = require('./utils/storage');
 const path = require('path');
 
 const aircraftsXMLPath = 'aircrafts.xml';
+const airportsCSVFilename = 'airports.csv';
 
 async function downloadAndProcessAircrafts() {
   const aircraftsXMLFilename = 'aircrafts.xml'; // El nombre del archivo en el bucket
@@ -26,14 +27,32 @@ async function downloadAndProcessAircrafts() {
   }
 }
 
+async function downloadAndProcessAirportsCSV() {
+  const airportsCSVFilename = 'airports.csv'; // El nombre del archivo en el bucket
+  const localCSVPath = path.join('data', airportsCSVFilename); // La ruta local donde se guardará el archivo CSV descargado
+
+  try {
+    // Descarga el archivo CSV del bucket a la carpeta local 'data'
+    await downloadFile(airportsCSVFilename);
+
+    // Procesa el archivo CSV descargado y conviértelo a JSON
+    await processAirportsCSV(localCSVPath);
+
+    console.log('El archivo CSV ha sido procesado y guardado como JSON.');
+  } catch (error) {
+    console.error('Error al descargar y procesar airports.csv:', error);
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
 
 // listFiles();
-downloadFlightData();
-downloadAndProcessAircrafts();
+// downloadFlightData();
+// downloadAndProcessAircrafts();
+downloadAndProcessAirportsCSV();
 
 
 

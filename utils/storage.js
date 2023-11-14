@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { parseString } = require('xml2js');
 const util = require('util');
+const csv = require('csv-parser'); // Asegúrate de que esta línea esté en la parte superior de storage.js
+
 
 const parseStringPromise = util.promisify(parseString); // Convertir parseString en una versión que retorna promesas
 
@@ -86,7 +88,30 @@ async function processAircraftsXML(filePath) {
       console.error('Error al procesar aircrafts.xml:', error);
     }
   }
+
+// Función para procesar el archivo airports.csv y convertirlo a JSON
+async function processAirportsCSV(filePath) {
+  const airports = [];
+
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (row) => airports.push(row))
+      .on('end', () => {
+        // Aquí ya tienes todos los datos del CSV en la variable airports
+        // Escribimos los datos en un archivo JSON en el directorio 'data'
+        const jsonFilePath = path.join('data', 'airports.json');
+        fs.promises.writeFile(jsonFilePath, JSON.stringify(airports, null, 2), 'utf-8')
+          .then(() => {
+            console.log(`Archivo airports.csv procesado y guardado como JSON en ${jsonFilePath}`);
+            resolve();
+          })
+          .catch(reject);
+      })
+      .on('error', reject);
+  });
+}
   
   
   
-  module.exports = { storage, bucket, listFiles, downloadFile, downloadFlightData, processAircraftsXML };
+  module.exports = { storage, bucket, listFiles, downloadFile, downloadFlightData, processAircraftsXML, processAirportsCSV};
