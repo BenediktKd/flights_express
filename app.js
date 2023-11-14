@@ -3,6 +3,7 @@ const app = express();
 const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, processAirportsCSV,
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
 const { countPassengersPerFlight } = require('./utils/dataCounter');
+const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -123,13 +124,18 @@ app.listen(PORT, () => {
 });
 
 // listFiles();
+// __________DESCARGA________________
 // downloadFlightData();
 // downloadAndProcessAircrafts();
 // downloadAndProcessAirportsCSV();
 // downloadAndProcessPassengersYAML();
 // downloadAndProcessTicketsCSV();
+// __________ARREGLO DE DATOS________________
 // combineAllFlightData();
-countPassengersPerFlight();
+// convertBirthDates();
+// countPassengersPerFlight();
+
+
 
 
 
