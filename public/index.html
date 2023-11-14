@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Data</title>
+    <style>
+        /* Agrega aquí estilos básicos para tu tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flight Data</h1>
+    <table id="flights-table">
+        <thead>
+            <tr>
+                <th>Flight Number</th>
+                <th>Origin IATA</th>
+                <th>Destination IATA</th>
+                <th>Airline</th>
+                <th>Aircraft Name</th>
+                <th>Year</th>
+                <th>Month</th>
+                <!-- Agrega más encabezados de columna según sea necesario -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los datos de vuelo se insertarán aquí mediante JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+        // La función para cargar los datos de vuelo desde el servidor
+        function loadFlightData() {
+            fetch('/api/flights/enriched') // Asegúrate de que esta URL coincida con tu endpoint de la API
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tableBody = document.getElementById('flights-table').getElementsByTagName('tbody')[0];
+                    data.forEach(flight => {
+                        let row = tableBody.insertRow();
+                        row.insertCell(0).innerText = flight.flightNumber;
+                        row.insertCell(1).innerText = flight.originIATA;
+                        row.insertCell(2).innerText = flight.destinationIATA;
+                        row.insertCell(3).innerText = flight.airline;
+                        row.insertCell(4).innerText = flight.aircraftName; // Asegúrate de que este campo exista en tus objetos de vuelo
+                        row.insertCell(5).innerText = flight.year;
+                        row.insertCell(6).innerText = flight.month;
+                        // Añade más celdas según los datos que tienes
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar los datos de vuelo:', error);
+                });
+        }
+
+        // Llamada a la función al cargar la página
+        document.addEventListener('DOMContentLoaded', loadFlightData);
+    </script>
+</body>
+</html>

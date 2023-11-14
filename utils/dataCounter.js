@@ -38,6 +38,39 @@ async function countPassengersPerFlight() {
     }
   }
 
+  // Función para mapear los aircraft IDs a sus nombres
+  async function mapAircrafts() {
+    const aircraftsData = JSON.parse(await fs.readFile('data/aircrafts.json', 'utf-8'));
+    const aircraftMap = {};
+    aircraftsData.forEach(aircraft => {
+      aircraftMap[aircraft.aircraftID] = aircraft.name;
+    });
+    return aircraftMap;
+  }
+  
+  // Función para agregar el nombre del avión a cada vuelo
+  async function addAircraftNamesToFlights() {
+    const aircraftMap = await mapAircrafts();
+    const combinedFlightsData = JSON.parse(await fs.readFile('data/combined_flights.json', 'utf-8'));
+  
+    combinedFlightsData.forEach(flight => {
+      if (aircraftMap[flight.aircraftID]) {
+        flight.aircraftName = aircraftMap[flight.aircraftID];
+      } else {
+        flight.aircraftName = 'Unknown'; // O manejar como se vea conveniente
+      }
+    });
+  
+    // Guardar o imprimir los datos modificados
+    console.log(combinedFlightsData);
+    // Puedes descomentar la siguiente línea para guardar los datos en un nuevo archivo
+    await fs.writeFile('data/enriched_flights.json', JSON.stringify(combinedFlightsData, null, 2), 'utf-8');
+  }
+  
+  addAircraftNamesToFlights();
+  
+
   module.exports = {
-    countPassengersPerFlight
+    countPassengersPerFlight,
+    addAircraftNamesToFlights
   };

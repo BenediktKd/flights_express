@@ -2,10 +2,12 @@ const express = require('express');
 const app = express();
 const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, processAirportsCSV,
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
-const { countPassengersPerFlight } = require('./utils/dataCounter');
+const { countPassengersPerFlight, addAircraftNamesToFlights} = require('./utils/dataCounter');
 const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
+
+
 
 const aircraftsXMLPath = 'aircrafts.xml';
 const airportsCSVFilename = 'airports.csv';
@@ -134,7 +136,35 @@ app.listen(PORT, () => {
 // combineAllFlightData();
 // convertBirthDates();
 // countPassengersPerFlight();
+addAircraftNamesToFlights();
 
+
+// Rutas para tus endpoints de API
+const flightRoutes = require('./routes/flights');
+
+// Middleware para servir archivos estáticos del directorio 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Usar las rutas de vuelos para la API
+app.use('/api/flights', flightRoutes);
+
+// Capturar cualquier otra ruta no manejada y devolver el archivo index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Manejador de errores
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+
+const port = process.env.PORT || 5000; // Usa el puerto establecido por el entorno o, si no
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
 
 
 
