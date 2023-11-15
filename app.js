@@ -231,6 +231,17 @@ app.get('/api/flight-coordinates/:flightNumber', async (req, res) => {
   }
 });
 
+app.get('/api/airports', async (req, res) => {
+  try {
+      const data = await fs.readFile(path.join(__dirname, 'data', 'airports.json'), 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+  } catch (error) {
+      console.error('Error serving airports data:', error);
+      res.status(500).send('Error serving airports data');
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;

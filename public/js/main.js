@@ -9,19 +9,44 @@ let map; // Global map variable
 let polyline; // Global polyline variable
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('/api/enriched-flights')
+    // Fetch the airport data first to initialize the map
+    fetch('/api/airports')
         .then(response => response.json())
-        .then(flights => {
-            currentFlights = flights.sort((a, b) => {
-                return a.year - b.year || a.month - b.month || a.flightNumber.localeCompare(b.flightNumber);
-            });
-            displayPage(currentPage);
-            initializeMap(); // You will call this function with actual data when a row is clicked
+        .then(airportsData => {
+            // Initialize the map with airport markers
+            initializeMap(airportsData);
+
+            // Then fetch the flights data to populate the table
+            fetch('/api/enriched-flights')
+                .then(response => response.json())
+                .then(flights => {
+                    currentFlights = flights.sort((a, b) => {
+                        return a.year - b.year || 
+                               a.month - b.month || 
+                               a.flightNumber.localeCompare(b.flightNumber);
+                    });
+                    displayPage(currentPage);
+                })
+                .catch(error => console.error('Error fetching flights:', error));
         })
-        .catch(error => console.error('Error fetching flights:', error));
+        .catch(error => console.error('Error fetching airports:', error));
 });
 
-function initializeMap() {
+// Function to add markers for each airport
+function addAirportMarkers(airportsData) {
+    airportsData.forEach(airport => {
+        const marker = L.marker([airport.lat, airport.lon]).addTo(map);
+        const airportInfo = `
+            <strong>${airport.name}</strong><br>
+            City: ${airport.city}<br>
+            Country: ${airport.country}<br>
+            IATA: ${airport.airportIATA}
+        `;
+        marker.bindPopup(airportInfo);
+    });
+}
+
+function initializeMap(airportsData) {
     // Initialize the map on the 'map' div with a given center and zoom
     map = L.map('map').setView([0, 0], 2); // Set a default center
 
@@ -30,6 +55,9 @@ function initializeMap() {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
+
+    // Add airport markers
+    addAirportMarkers(airportsData);
 }
 
 function displayPage(page, flightsData = currentFlights) {
