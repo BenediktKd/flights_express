@@ -123,12 +123,19 @@ function createFlightsTable(flights) {
 }
 
 // Function to fetch and display flight coordinates when a row is clicked
+// Modify fetchFlightCoordinates to include flight details for the popup
 function fetchFlightCoordinates(flightNumber) {
     displayLoadingIndicator(true); // Show loading indicator
     fetch(`/api/flight-coordinates/${flightNumber}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Coordinates not found for flight number: ' + flightNumber);
+            }
+            return response.json();
+        })
         .then(coordinates => {
-            updateMap(coordinates.originLat, coordinates.originLon, coordinates.destinationLat, coordinates.destinationLon);
+            const flightDetails = currentFlights.find(flight => flight.flightNumber === flightNumber);
+            updateMap(coordinates.originLat, coordinates.originLon, coordinates.destinationLat, coordinates.destinationLon, flightDetails);
             displayLoadingIndicator(false); // Hide loading indicator
         })
         .catch(error => {
@@ -138,19 +145,60 @@ function fetchFlightCoordinates(flightNumber) {
         });
 }
 
+
 // Function to update the map with the flight path
-function updateMap(originLat, originLon, destinationLat, destinationLon) {
+function updateMap(originLat, originLon, destinationLat, destinationLon, flightDetails) {
     const origin = [parseFloat(originLat), parseFloat(originLon)];
     const destination = [parseFloat(destinationLat), parseFloat(destinationLon)];
 
-    // Clear the existing polyline if it exists
+    // Clear the existing polyline and markers if they exist
     if (polyline) {
         map.removeLayer(polyline);
     }
+    if (map.flightPathMarker) {
+        map.removeLayer(map.flightPathMarker);
+    }
 
     // Draw the new polyline on the map
-    polyline = L.polyline([origin, destination], { color: 'blue' }).addTo(map);
+        polyline = L.polyline([origin, destination], { color: 'blue' }).addTo(map);
+
+        // Bind click event to polyline
+        polyline.on('click', () => {
+            // Open the popup manually
+            map.flightPathMarker.openPopup();
+        });
+    
+    // Set the view to fit the bounds of the polyline
     map.fitBounds(polyline.getBounds());
+
+    // Calculate the midpoint for the flight path marker
+    const midpoint = L.latLng(
+        (origin[0] + destination[0]) / 2,
+        (origin[1] + destination[1]) / 2
+    );
+
+    // Create a marker at the midpoint of the flight path
+    map.flightPathMarker = L.marker(midpoint, {
+        icon: L.divIcon({
+            className: 'flight-path-marker', // Define a custom class in your CSS
+            html: '✈️', // This could be any HTML, like an SVG or image
+            iconSize: [24, 24]
+        })
+    }).addTo(map);
+
+    // Bind a popup to the flight path marker with flight details
+    const flightInfo = `
+        <strong>Flight Information:</strong><br>
+        Flight Number: ${flightDetails.flightNumber}<br>
+        Origin: ${flightDetails.originCity} (${flightDetails.originIATA})<br>
+        Destination: ${flightDetails.destinationCity} (${flightDetails.destinationIATA})<br>
+        Airline: ${flightDetails.airline}<br>
+        Aircraft: ${flightDetails.aircraftName}<br>
+        Average Age: ${flightDetails.averageAge}<br>
+        Distance: ${flightDetails.distance} km<br>
+        Total Passengers: ${flightDetails.totalPassengers}
+    `;
+    map.flightPathMarker.bindPopup(flightInfo);
 }
 
 
