@@ -110,6 +110,7 @@ function createFlightsTable(flights) {
         // Add event listener to each row for the click event
         row.addEventListener('click', function() {
             // Call a function to handle the click event
+            showFlightNumber(flight.flightNumber); // Function to show the flight number
             fetchFlightCoordinates(flight.flightNumber);
         });
 
@@ -120,6 +121,16 @@ function createFlightsTable(flights) {
     });
 
     return table;
+}
+
+function showFlightNumber(flightNumber) {
+    // You might want to create a dedicated area in your HTML to show the selected flight number.
+    // For example, an element with the ID 'selected-flight-number'.
+    // Here's how you can update its content:
+    const flightNumberDisplay = document.getElementById('selected-flight-number');
+    if (flightNumberDisplay) {
+        flightNumberDisplay.textContent = `${flightNumber}`;
+    }
 }
 
 // Function to fetch and display flight coordinates when a row is clicked
