@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Flight Information</title>
-    <link rel="stylesheet" href="css/styles.css"> <!-- Link to the external stylesheet -->
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
 <h1>Flight Information</h1>
+
+<!-- Search Inputs -->
+
+
+
+<div id="map" style="height: 400px;"></div>
+
 
 <div>
     <label for="search-origin">Search by Origin City:</label>
@@ -17,7 +27,6 @@
     <label for="search-destination">Search by Destination City:</label>
     <input type="text" id="search-destination" onkeyup="filterFlights()" placeholder="Enter destination city...">
 </div>
-
 
 <div id="flights-table-container">
     <!-- The flights table will be inserted here by the JavaScript -->
@@ -29,9 +38,10 @@
     </div>
 </div>
 
-
-<script src="js/main.js"></script> 
-
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<!-- Your custom JS -->
+<script src="js/main.js"></script>
 
 </body>
 </html>

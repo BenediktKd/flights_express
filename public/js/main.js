@@ -17,10 +17,37 @@ document.addEventListener('DOMContentLoaded', function() {
                        a.month - b.month || 
                        a.flightNumber.localeCompare(b.flightNumber);
             });
+
+            // Display the first page of flights
             displayPage(currentPage);
+
+            // Initialize the map with the first flight's path
+            // Assuming each flight has an origin and destination property with coordinates
+            initializeMap();
         })
         .catch(error => console.error('Error fetching flights:', error));
 });
+
+function initializeMap() {
+    // Hardcoded coordinates for Sydney (Origin) and Lisbon (Destination)
+    const origin = [-33.8688, 151.2093]; // Sydney coordinates
+    const destination = [38.7223, -9.1393]; // Lisbon coordinates
+
+    // Initialize the map on the 'map' div with a given center and zoom
+    var map = L.map('map').setView(origin, 5);
+
+    // Add OpenStreetMap tile layer to the map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Draw a polyline between the origin and destination
+    L.polyline([origin, destination], { color: 'blue' }).addTo(map);
+
+    // Set the view to fit the bounds of the polyline
+    map.fitBounds([origin, destination]);
+}
 
 function displayPage(page, flightsData = currentFlights) {
     const startIndex = (page - 1) * flightsPerPage;
