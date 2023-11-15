@@ -218,10 +218,42 @@ async function addDistancesToFlights() {
   console.log('Enriched flights file has been updated with distances.');
 }
 
+async function enrichFlightsWithCityNames() {
+  // Load and parse the airports file
+  const airportsFilePath = path.join('data', 'airports.json');
+  const airportsRawData = await fs.readFile(airportsFilePath, 'utf-8');
+  const airports = JSON.parse(airportsRawData);
+
+  // Create a map for quick airport lookup by IATA code
+  const airportCityMap = {};
+  airports.forEach(airport => {
+    airportCityMap[airport.airportIATA] = airport.city;
+  });
+
+  // Load and parse the enriched flights file
+  const enrichedFlightsFilePath = path.join('data', 'enriched_flights.json');
+  const enrichedFlightsRawData = await fs.readFile(enrichedFlightsFilePath, 'utf-8');
+  const enrichedFlights = JSON.parse(enrichedFlightsRawData);
+
+  // Add origin and destination city names to each flight
+  const enrichedFlightsWithCities = enrichedFlights.map(flight => {
+    return {
+      ...flight,
+      originCity: airportCityMap[flight.originIATA] || 'Unknown',
+      destinationCity: airportCityMap[flight.destinationIATA] || 'Unknown'
+    };
+  });
+
+  // Write the updated flights back to the enriched flights file
+  await fs.writeFile(enrichedFlightsFilePath, JSON.stringify(enrichedFlightsWithCities, null, 2), 'utf-8');
+  console.log('Enriched flights file has been updated with city names.');
+}
+
   module.exports = {
     countPassengersPerFlight,
     addAircraftNamesToFlights,
     addPassengerCountsToFlights,
     addAverageAgeToFlights,
-    addDistancesToFlights
+    addDistancesToFlights,
+    enrichFlightsWithCityNames
   };
