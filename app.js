@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, processAirportsCSV,
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
-const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsToFlights, addAverageAgeToFlights} = require('./utils/dataCounter');
+const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsToFlights, addAverageAgeToFlights, addDistancesToFlights} = require('./utils/dataCounter');
 const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
@@ -157,17 +157,13 @@ async function processAdditionalData() {
 
     await addAverageAgeToFlights();
 
+    await addDistancesToFlights();
+
     console.log('Todas las tareas adicionales han sido completadas.');
   } catch (error) {
     console.error('Error en la secuencia de tareas adicionales:', error);
   }
 }
-
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
 
 // Llama a la función que inicia todo el proceso principal
 downloadAndProcessData()
@@ -179,3 +175,24 @@ downloadAndProcessData()
     console.error('Error durante la inicialización:', error);
   });
 
+
+// Middleware to serve static files from the 'public' directory
+app.use(express.static('public'));
+
+// Endpoint to serve enriched flights JSON data
+app.get('/api/enriched-flights', async (req, res) => {
+    try {
+        const data = await fs.readFile(path.join(__dirname, 'data', 'enriched_flights.json'), 'utf-8');
+        res.setHeader('Content-Type', 'application/json');
+        res.send(data);
+    } catch (error) {
+        console.error('Error serving enriched flights:', error);
+        res.status(500).send('Error serving enriched flights');
+    }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

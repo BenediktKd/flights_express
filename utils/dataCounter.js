@@ -162,9 +162,66 @@ async function addAverageAgeToFlights() {
   console.log('Enriched flights file has been updated with average passenger ages.');
 }
 
+// Helper function to calculate distance
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  return Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(lon1 - lon2, 2));
+}
+
+// Main function to add distances to flights
+async function addDistancesToFlights() {
+  const airportsFilePath = path.join('data', 'airports.json');
+  const enrichedFlightsFilePath = path.join('data', 'enriched_flights.json');
+
+  // Read and parse the airports file
+  const airportsRawData = await fs.readFile(airportsFilePath, 'utf-8');
+  const airports = JSON.parse(airportsRawData);
+
+  // Create a map for quick airport lookup by IATA code
+  const airportCoords = {};
+  airports.forEach(airport => {
+    airportCoords[airport.airportIATA] = {
+      lat: parseFloat(airport.lat),
+      lon: parseFloat(airport.lon)
+    };
+  });
+
+  // Read and parse the enriched flights file
+  const enrichedFlightsRawData = await fs.readFile(enrichedFlightsFilePath, 'utf-8');
+  const enrichedFlights = JSON.parse(enrichedFlightsRawData);
+
+  // Calculate and add distance to each flight
+  const enrichedFlightsWithDistances = enrichedFlights.map(flight => {
+    const originCoords = airportCoords[flight.originIATA];
+    const destinationCoords = airportCoords[flight.destinationIATA];
+
+    // Check if we have the coordinates for both the origin and destination airports
+    if (originCoords && destinationCoords) {
+      const distance = calculateDistance(
+        originCoords.lat, originCoords.lon,
+        destinationCoords.lat, destinationCoords.lon
+      );
+      return {
+        ...flight,
+        distance: distance.toFixed(2) // Round to two decimal places for readability
+      };
+    } else {
+      // If we don't have the coordinates for an airport, we can't calculate the distance
+      return {
+        ...flight,
+        distance: 'Unknown'
+      };
+    }
+  });
+
+  // Write the updated flights back to the enriched flights file
+  await fs.writeFile(enrichedFlightsFilePath, JSON.stringify(enrichedFlightsWithDistances, null, 2), 'utf-8');
+  console.log('Enriched flights file has been updated with distances.');
+}
+
   module.exports = {
     countPassengersPerFlight,
     addAircraftNamesToFlights,
     addPassengerCountsToFlights,
-    addAverageAgeToFlights
+    addAverageAgeToFlights,
+    addDistancesToFlights
   };

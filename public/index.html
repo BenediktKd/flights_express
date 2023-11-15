@@ -2,75 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flight Data</title>
+    <title>Flight Information</title>
     <style>
-        /* Agrega aquí estilos básicos para tu tabla */
+        body {
+            font-family: Arial, sans-serif;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
         }
         th, td {
-            border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
         th {
             background-color: #f2f2f2;
         }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .page-number {
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid #ddd;
+            margin-right: 5px;
+            user-select: none;
+        }
+        .page-number.active {
+            background-color: #666;
+            color: white;
+            border-color: #666;
+        }
+        .pagination-wrapper {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
-    <h1>Flight Data</h1>
-    <table id="flights-table">
-        <thead>
-            <tr>
-                <th>Flight Number</th>
-                <th>Origin IATA</th>
-                <th>Destination IATA</th>
-                <th>Airline</th>
-                <th>Aircraft Name</th>
-                <th>Year</th>
-                <th>Month</th>
-                <!-- Agrega más encabezados de columna según sea necesario -->
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Los datos de vuelo se insertarán aquí mediante JavaScript -->
-        </tbody>
-    </table>
 
-    <script>
-        // La función para cargar los datos de vuelo desde el servidor
-        function loadFlightData() {
-            fetch('/api/flights/enriched') // Asegúrate de que esta URL coincida con tu endpoint de la API
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const tableBody = document.getElementById('flights-table').getElementsByTagName('tbody')[0];
-                    data.forEach(flight => {
-                        let row = tableBody.insertRow();
-                        row.insertCell(0).innerText = flight.flightNumber;
-                        row.insertCell(1).innerText = flight.originIATA;
-                        row.insertCell(2).innerText = flight.destinationIATA;
-                        row.insertCell(3).innerText = flight.airline;
-                        row.insertCell(4).innerText = flight.aircraftName; // Asegúrate de que este campo exista en tus objetos de vuelo
-                        row.insertCell(5).innerText = flight.year;
-                        row.insertCell(6).innerText = flight.month;
-                        // Añade más celdas según los datos que tienes
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al cargar los datos de vuelo:', error);
-                });
+<h1>Flight Information</h1>
+
+<div id="flights-table-container">
+    <!-- The flights table will be inserted here by the JavaScript -->
+</div>
+
+<div class="pagination-wrapper">
+    <div class="pagination">
+        <!-- Pagination buttons will be inserted here -->
+    </div>
+</div>
+
+<script>
+let currentFlights = [];
+let currentPage = 1;
+const flightsPerPage = 15;
+let currentSort = {
+    column: 'year',
+    ascending: true
+};
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/enriched-flights')
+        .then(response => response.json())
+        .then(flights => {
+            // Sort flights by year, then month, then flight identifier upon initial fetch
+            currentFlights = flights.sort((a, b) => {
+                return a.year - b.year || 
+                       a.month - b.month || 
+                       a.flightNumber.localeCompare(b.flightNumber);
+            });
+            displayPage(currentPage);
+        })
+        .catch(error => console.error('Error fetching flights:', error));
+});
+
+function displayPage(page) {
+    const startIndex = (page - 1) * flightsPerPage;
+    const endIndex = startIndex + flightsPerPage;
+    const pageFlights = currentFlights.slice(startIndex, endIndex);
+
+    const tableContainer = document.getElementById('flights-table-container');
+    tableContainer.innerHTML = ''; // Clear existing table content
+    tableContainer.appendChild(createFlightsTable(pageFlights));
+
+    setupPagination(currentFlights.length, flightsPerPage);
+}
+
+function createFlightsTable(flights) {
+    const table = document.createElement('table');
+    const headerRow = table.insertRow();
+
+    // Add table headers
+    const headers = ['Year', 'Month', 'Flight ID', 'Origin', 'Destination', 'Airline', 'Average Age', 'Distance', 'Aircraft Name', 'Total Passengers'];
+    const sortKeys = ['year', 'month', 'flightNumber', 'originIATA', 'destinationIATA', 'airline', 'averageAge', 'distance', 'aircraftName', 'totalPassengers'];
+    
+    headers.forEach((headerText, index) => {
+        const headerCell = document.createElement('th');
+        headerCell.textContent = headerText;
+        headerCell.classList.add('sortable');
+        headerCell.setAttribute('data-sort', sortKeys[index]);
+        headerCell.onclick = function() {
+            sortTable(sortKeys[index]);
+        };
+        headerRow.appendChild(headerCell);
+    });
+
+    // Add table rows for each flight
+    flights.forEach(flight => {
+        const row = table.insertRow();
+        headers.forEach(header => {
+            const cell = row.insertCell();
+            switch (header) {
+                case 'Year': cell.textContent = flight.year; break;
+                case 'Month': cell.textContent = flight.month; break;
+                case 'Flight ID': cell.textContent = flight.flightNumber; break;
+                case 'Origin': cell.textContent = flight.originIATA; break; // Replace with name if available
+                case 'Destination': cell.textContent = flight.destinationIATA; break; // Replace with name if available
+                case 'Airline': cell.textContent = flight.airline; break;
+                case 'Average Age': cell.textContent = flight.averageAge; break;
+                case 'Distance': cell.textContent = flight.distance; break;
+                case 'Aircraft Name': cell.textContent = flight.aircraftName; break;
+                case 'Total Passengers': cell.textContent = flight.totalPassengers; break;
+                default: cell.textContent = '';
+            }
+        });
+    });
+
+    return table;
+}
+
+function sortTable(sortKey) {
+    if (currentSort.column === sortKey) {
+        currentSort.ascending = !currentSort.ascending;
+    } else {
+        currentSort = {
+            column: sortKey,
+            ascending: true
+        };
+    }
+
+    currentFlights.sort((a, b) => {
+        if (a[sortKey] == b[sortKey]) return 0;
+        if (currentSort.ascending) {
+            return a[sortKey] < b[sortKey] ? -1 : 1;
+        } else {
+            return a[sortKey] > b[sortKey] ? -1 : 1;
         }
+    });
 
-        // Llamada a la función al cargar la página
-        document.addEventListener('DOMContentLoaded', loadFlightData);
-    </script>
+    displayPage(1); // Start at page 1 after sorting
+}
+
+function setupPagination(totalFlights, flightsPerPage) {
+    const pageCount = Math.ceil(totalFlights / flightsPerPage);
+    const paginationContainer = document.querySelector('.pagination');
+    paginationContainer.innerHTML = ''; // Clear existing pagination content
+
+    // Determine the range of page numbers to display
+    const maxPageNumbersToShow = 5; // Set the max number of pagination buttons
+    let startPage = Math.max(currentPage - Math.floor(maxPageNumbersToShow / 2), 1);
+    let endPage = startPage + maxPageNumbersToShow - 1;
+
+    // Adjust if the end page goes beyond the total page count
+    if (endPage > pageCount) {
+        endPage = pageCount;
+        startPage = Math.max(endPage - maxPageNumbersToShow + 1, 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const pageNumber = document.createElement('span');
+        pageNumber.textContent = i;
+        pageNumber.className = 'page-number' + (i === currentPage ? ' active' : '');
+        pageNumber.addEventListener('click', function() {
+            currentPage = i;
+            displayPage(currentPage);
+            setupPagination(totalFlights, flightsPerPage); // Re-setup pagination to update active class
+        });
+        paginationContainer.appendChild(pageNumber);
+    }
+}
+
+
+</script>
+
 </body>
 </html>
