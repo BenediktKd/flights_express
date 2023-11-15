@@ -1,0 +1,38 @@
+body {
+    font-family: Arial, sans-serif;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+th {
+    background-color: #f2f2f2;
+}
+tr:hover {
+    background-color: #f5f5f5;
+}
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+.page-number {
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid #ddd;
+    margin-right: 5px;
+    user-select: none;
+}
+.page-number.active {
+    background-color: #666;
+    color: white;
+    border-color: #666;
+}
+.pagination-wrapper {
+    overflow-x: auto;
+    white-space: nowrap;
+}
