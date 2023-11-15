@@ -120,53 +120,58 @@ async function combineAllFlightData() {
   }
 }
 
+// Define una función asincrónica que realiza todas las descargas y procesamientos en secuencia
+async function downloadAndProcessData() {
+  try {
+    // Llama a las funciones de descarga y procesamiento una después de la otra
+    await listFiles();
+    await downloadFlightData();
+    await downloadAndProcessAircrafts();
+    await downloadAndProcessAirportsCSV();
+    await downloadAndProcessPassengersYAML();
+    await downloadAndProcessTicketsCSV();
+    await combineAllFlightData();
+
+    console.log('Todas las descargas y procesamientos han sido completados.');
+  } catch (error) {
+    console.error('Error en la secuencia de descargas y procesamientos:', error);
+  }
+}
+
+// Define una función asincrónica para procesar datos adicionales
+async function processAdditionalData() {
+  try {
+    // Combina los datos de vuelo
+    await combineAllFlightData();
+    
+    // Convierte las fechas de nacimiento
+    await convertBirthDates();
+    
+    // Cuenta los pasajeros por vuelo
+    await countPassengersPerFlight();
+    
+    // Agrega nombres de aeronaves a los vuelos
+    await addAircraftNamesToFlights();
+
+    console.log('Todas las tareas adicionales han sido completadas.');
+  } catch (error) {
+    console.error('Error en la secuencia de tareas adicionales:', error);
+  }
+}
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
 
-// listFiles();
-// __________DESCARGA________________
-// downloadFlightData();
-// downloadAndProcessAircrafts();
-// downloadAndProcessAirportsCSV();
-// downloadAndProcessPassengersYAML();
-// downloadAndProcessTicketsCSV();
-// __________ARREGLO DE DATOS________________
-// combineAllFlightData();
-// convertBirthDates();
-// countPassengersPerFlight();
-addAircraftNamesToFlights();
-
-
-// Rutas para tus endpoints de API
-const flightRoutes = require('./routes/flights');
-
-// Middleware para servir archivos estáticos del directorio 'public'
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Usar las rutas de vuelos para la API
-app.use('/api/flights', flightRoutes);
-
-// Capturar cualquier otra ruta no manejada y devolver el archivo index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Manejador de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-});
-
-
-const port = process.env.PORT || 5000; // Usa el puerto establecido por el entorno o, si no
-
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
-
-
-
-
+// Llama a la función que inicia todo el proceso principal
+downloadAndProcessData()
+  .then(() => {
+    // Una vez que se completan las tareas principales, llama a las tareas adicionales
+    processAdditionalData();
+  })
+  .catch(error => {
+    console.error('Error durante la inicialización:', error);
+  });
 

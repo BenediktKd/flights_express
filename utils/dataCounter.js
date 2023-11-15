@@ -67,8 +67,7 @@ async function countPassengersPerFlight() {
     await fs.writeFile('data/enriched_flights.json', JSON.stringify(combinedFlightsData, null, 2), 'utf-8');
   }
   
-  addAircraftNamesToFlights();
-  
+
 
   module.exports = {
     countPassengersPerFlight,

@@ -61,7 +61,6 @@ async function downloadFlightData() {
   }
 }
 
-// Función para procesar el archivo aircrafts.xml
 // Función para procesar el archivo aircrafts.xml y convertirlo a JSON
 async function processAircraftsXML(filePath) {
     try {
@@ -155,7 +154,6 @@ async function processTicketsCSV(filePath) {
       .on('error', reject);
   });
 }
-  
   
   module.exports = { storage, bucket, listFiles, downloadFile, downloadFlightData, processAircraftsXML, processAirportsCSV, 
     processPassengersYAML, processTicketsCSV};
