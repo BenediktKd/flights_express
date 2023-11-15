@@ -36,3 +36,12 @@ tr:hover {
     overflow-x: auto;
     white-space: nowrap;
 }
+
+#loading-indicator {
+    /* Your styles for the loading indicator */
+}
+
+#error-message {
+    /* Your styles for the error message */
+    color: red;
+}

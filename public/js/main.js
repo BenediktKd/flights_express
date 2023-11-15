@@ -5,48 +5,31 @@ let currentSort = {
     column: 'year',
     ascending: true
 };
-
+let map; // Global map variable
+let polyline; // Global polyline variable
 
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/enriched-flights')
         .then(response => response.json())
         .then(flights => {
-            // Sort flights by year, then month, then flight identifier upon initial fetch
             currentFlights = flights.sort((a, b) => {
-                return a.year - b.year || 
-                       a.month - b.month || 
-                       a.flightNumber.localeCompare(b.flightNumber);
+                return a.year - b.year || a.month - b.month || a.flightNumber.localeCompare(b.flightNumber);
             });
-
-            // Display the first page of flights
             displayPage(currentPage);
-
-            // Initialize the map with the first flight's path
-            // Assuming each flight has an origin and destination property with coordinates
-            initializeMap();
+            initializeMap(); // You will call this function with actual data when a row is clicked
         })
         .catch(error => console.error('Error fetching flights:', error));
 });
 
 function initializeMap() {
-    // Hardcoded coordinates for Sydney (Origin) and Lisbon (Destination)
-    const origin = [-33.8688, 151.2093]; // Sydney coordinates
-    const destination = [38.7223, -9.1393]; // Lisbon coordinates
-
     // Initialize the map on the 'map' div with a given center and zoom
-    var map = L.map('map').setView(origin, 5);
+    map = L.map('map').setView([0, 0], 2); // Set a default center
 
     // Add OpenStreetMap tile layer to the map
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-
-    // Draw a polyline between the origin and destination
-    L.polyline([origin, destination], { color: 'blue' }).addTo(map);
-
-    // Set the view to fit the bounds of the polyline
-    map.fitBounds([origin, destination]);
 }
 
 function displayPage(page, flightsData = currentFlights) {
@@ -61,18 +44,18 @@ function displayPage(page, flightsData = currentFlights) {
     setupPagination(flightsData.length, flightsPerPage); // Use filtered flights length for pagination
 }
 
-
 function createFlightsTable(flights) {
     const table = document.createElement('table');
-    const headerRow = table.insertRow();
+    table.id = 'flights-table'; // Assign an ID to the table for styling
+    const headerRow = table.createTHead().insertRow();
 
-    // Update the headers to include Origin City and Destination City
+    // Define the headers for the table
     const headers = [
         'Year', 'Month', 'Flight ID', 
         'Origin', 'Origin City', 'Destination', 'Destination City', 
         'Airline', 'Average Age', 'Distance', 'Aircraft Name', 'Total Passengers'
     ];
-    const sortKeys = [
+    const dataKeys = [
         'year', 'month', 'flightNumber', 
         'originIATA', 'originCity', 'destinationIATA', 'destinationCity', 
         'airline', 'averageAge', 'distance', 'aircraftName', 'totalPassengers'
@@ -82,24 +65,87 @@ function createFlightsTable(flights) {
         const headerCell = document.createElement('th');
         headerCell.textContent = headerText;
         headerCell.classList.add('sortable');
-        headerCell.setAttribute('data-sort', sortKeys[index]);
+        headerCell.setAttribute('data-sort', dataKeys[index]);
         headerCell.onclick = function() {
-            sortTable(sortKeys[index]);
+            sortTable(dataKeys[index]);
         };
         headerRow.appendChild(headerCell);
     });
 
-    // Add table rows for each flight
+    // Create a row for each flight and append cells
+    const tbody = table.createTBody();
     flights.forEach(flight => {
-        const row = table.insertRow();
-        sortKeys.forEach(key => {
+        const row = tbody.insertRow();
+        row.classList.add('flight-row'); // Add class for styling
+        row.setAttribute('data-flight-number', flight.flightNumber); // Set data attribute
+
+        // Add event listener to each row for the click event
+        row.addEventListener('click', function() {
+            // Call a function to handle the click event
+            fetchFlightCoordinates(flight.flightNumber);
+        });
+
+        dataKeys.forEach(key => {
             const cell = row.insertCell();
-            cell.textContent = flight[key];
+            cell.textContent = flight[key] || ''; // Use || '' to handle undefined or null values
         });
     });
 
     return table;
 }
+
+// Function to fetch and display flight coordinates when a row is clicked
+function fetchFlightCoordinates(flightNumber) {
+    displayLoadingIndicator(true); // Show loading indicator
+    fetch(`/api/flight-coordinates/${flightNumber}`)
+        .then(response => response.json())
+        .then(coordinates => {
+            updateMap(coordinates.originLat, coordinates.originLon, coordinates.destinationLat, coordinates.destinationLon);
+            displayLoadingIndicator(false); // Hide loading indicator
+        })
+        .catch(error => {
+            console.error('Error fetching coordinates:', error);
+            displayErrorMessage('Coordinates not found.');
+            displayLoadingIndicator(false); // Hide loading indicator
+        });
+}
+
+// Function to update the map with the flight path
+function updateMap(originLat, originLon, destinationLat, destinationLon) {
+    const origin = [parseFloat(originLat), parseFloat(originLon)];
+    const destination = [parseFloat(destinationLat), parseFloat(destinationLon)];
+
+    // Clear the existing polyline if it exists
+    if (polyline) {
+        map.removeLayer(polyline);
+    }
+
+    // Draw the new polyline on the map
+    polyline = L.polyline([origin, destination], { color: 'blue' }).addTo(map);
+    map.fitBounds(polyline.getBounds());
+}
+
+
+// Functions to show or hide the loading indicator and error messages
+function displayLoadingIndicator(show) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+}
+
+function displayErrorMessage(message) {
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+}
+
+// ... rest of your code for sorting and pagination ...
+
+// Remember to add your CSS for the loading indicator and error message in styles.css
+
 
 function sortTable(sortKey) {
     if (currentSort.column === sortKey) {

@@ -4,6 +4,7 @@ const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, proce
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
 const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsToFlights, addAverageAgeToFlights,
    addDistancesToFlights, enrichFlightsWithCityNames} = require('./utils/dataCounter');
+const {generateFLightCoordinatesJson, generateFlightCoordinatesJson} = require('./utils/dataMaper');
 const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
@@ -132,6 +133,7 @@ async function downloadAndProcessData() {
     await downloadAndProcessPassengersYAML();
     await downloadAndProcessTicketsCSV();
     await combineAllFlightData();
+    await generateFlightCoordinatesJson();
 
     console.log('Todas las descargas y procesamientos han sido completados.');
   } catch (error) {
@@ -193,6 +195,42 @@ app.get('/api/enriched-flights', async (req, res) => {
         res.status(500).send('Error serving enriched flights');
     }
 });
+
+// Endpoint to serve flight coordinates JSON data based on flight number
+app.get('/api/flight-coordinates/:flightNumber', async (req, res) => {
+  try {
+      // Get the flight number from the request parameters
+      const flightNumber = req.params.flightNumber;
+
+      // Read the flight coordinates data from the JSON file
+      const filePath = path.join(__dirname, 'data', 'flight_coordinates.json');
+      const data = await fs.readFile(filePath, 'utf-8');
+      const flightCoordinates = JSON.parse(data);
+
+      // Find the coordinates for the given flight number
+      const flight = flightCoordinates.find(flight => flight.flightNumber === flightNumber);
+
+      if (flight) {
+          // Construct an object with only the required properties
+          const coordinates = {
+              originLat: flight.originLat,
+              originLon: flight.originLon,
+              destinationLat: flight.destinationLat,
+              destinationLon: flight.destinationLon
+          };
+
+          res.setHeader('Content-Type', 'application/json');
+          res.send(coordinates);
+      } else {
+          // If no flight found, send a 404 response
+          res.status(404).send('Flight coordinates not found');
+      }
+  } catch (error) {
+      console.error('Error serving flight coordinates:', error);
+      res.status(500).send('Error serving flight coordinates');
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
