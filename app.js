@@ -4,7 +4,7 @@ const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, proce
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
 const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsToFlights, addAverageAgeToFlights,
    addDistancesToFlights, enrichFlightsWithCityNames} = require('./utils/dataCounter');
-const {generateFLightCoordinatesJson, generateFlightCoordinatesJson} = require('./utils/dataMaper');
+const {generateFlightCoordinatesJson, generateFlightPassengersData} = require('./utils/dataMaper');
 const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
@@ -132,8 +132,17 @@ async function downloadAndProcessData() {
     await downloadAndProcessAirportsCSV();
     await downloadAndProcessPassengersYAML();
     await downloadAndProcessTicketsCSV();
-    await combineAllFlightData();
+
     await generateFlightCoordinatesJson();
+
+    
+
+    
+
+   
+s
+    
+
 
     console.log('Todas las descargas y procesamientos han sido completados.');
   } catch (error) {
@@ -163,6 +172,11 @@ async function processAdditionalData() {
     await addDistancesToFlights();
 
     await enrichFlightsWithCityNames();
+
+    await generateFlightPassengersData();
+
+    
+
 
     console.log('Todas las tareas adicionales han sido completadas.');
   } catch (error) {
@@ -241,6 +255,30 @@ app.get('/api/airports', async (req, res) => {
       res.status(500).send('Error serving airports data');
   }
 });
+
+// Endpoint to get passengers by flight number
+app.get('/api/flight-passengers/:flightNumber', async (req, res) => {
+  const flightNumber = req.params.flightNumber;
+  const flightPassengersPath = path.join(__dirname, 'data', 'flight_passengers.json');
+  
+  try {
+    const data = await fs.readFile(flightPassengersPath, 'utf8');
+    const passengers = JSON.parse(data);
+    
+    // Access the passengers array using the flight number
+    const passengersArray = passengers[flightNumber];
+
+    if (!passengersArray) {
+      return res.status(404).json({ message: 'Flight number not found' });
+    }
+    
+    res.json(passengersArray); // Send the array of passengers for the flight number
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 
 // Start the server

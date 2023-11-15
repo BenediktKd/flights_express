@@ -38,6 +38,61 @@ async function generateFlightCoordinatesJson() {
   }
 }
 
+// Helper function to calculate age from birthDate
+function calculateAge(birthDate) {
+  const birthDateObj = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birthDateObj.getFullYear();
+  const m = today.getMonth() - birthDateObj.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDateObj.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+// Main function to generate the flight passengers data
+async function generateFlightPassengersData() {
+  const ticketsDataPath = path.join('data', 'tickets.json');
+  const passengersDataPath = path.join('data', 'passengers.json');
+  const outputFilePath = path.join('data', 'flight_passengers.json');
+  
+  try {
+    // Make sure the files exist
+    await Promise.all([fs.access(ticketsDataPath), fs.access(passengersDataPath)]);
+
+    // Load and parse the tickets and passengers data
+    const ticketsData = JSON.parse(await fs.readFile(ticketsDataPath, 'utf-8'));
+    const passengersData = JSON.parse(await fs.readFile(passengersDataPath, 'utf-8')).passengers;
+
+    // Create a map for passenger details for quick lookup
+    const passengerDetailsMap = new Map();
+    passengersData.forEach(passenger => {
+      const age = calculateAge(passenger.birthDate.split('/').reverse().join('-'));
+      passengerDetailsMap.set(passenger.passengerID, { ...passenger, age });
+    });
+
+    // Create a structure to hold the flight passenger data
+    const flightPassengers = {};
+
+    // Go through each ticket and organize passengers by flight number
+    ticketsData.forEach(ticket => {
+      if (!flightPassengers[ticket.flightNumber]) {
+        flightPassengers[ticket.flightNumber] = [];
+      }
+      const passengerDetails = passengerDetailsMap.get(ticket.passengerID);
+      if (passengerDetails) {
+        flightPassengers[ticket.flightNumber].push({ ...passengerDetails, seatNumber: ticket.seatNumber });
+      }
+    });
+
+    await fs.writeFile(outputFilePath, JSON.stringify(flightPassengers, null, 2), 'utf-8');
+    console.log(`Flight passengers data has been saved to ${outputFilePath}`);
+  } catch (error) {
+    console.error('Error generating flight passengers data:', error);
+  }
+}
+
 module.exports = {
-    generateFlightCoordinatesJson
+    generateFlightCoordinatesJson,
+    generateFlightPassengersData
   };
