@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const { listFiles, downloadFlightData, downloadFile , processAircraftsXML, processAirportsCSV,
       processPassengersYAML, processTicketsCSV } = require('./utils/storage');
-const { countPassengersPerFlight, addAircraftNamesToFlights} = require('./utils/dataCounter');
+const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsToFlights, addAverageAgeToFlights} = require('./utils/dataCounter');
 const {convertBirthDates} = require('./utils/dataFixer')
 const path = require('path');
 const fs = require('fs').promises;
@@ -152,6 +152,10 @@ async function processAdditionalData() {
     
     // Agrega nombres de aeronaves a los vuelos
     await addAircraftNamesToFlights();
+
+    await addPassengerCountsToFlights();
+
+    await addAverageAgeToFlights();
 
     console.log('Todas las tareas adicionales han sido completadas.');
   } catch (error) {

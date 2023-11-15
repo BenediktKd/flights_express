@@ -67,9 +67,104 @@ async function countPassengersPerFlight() {
     await fs.writeFile('data/enriched_flights.json', JSON.stringify(combinedFlightsData, null, 2), 'utf-8');
   }
   
+// Function to add passenger counts to enriched flights
+async function addPassengerCountsToFlights() {
+  const passengerCountsFilePath = path.join('data', 'passenger_counts.json');
+  const enrichedFlightsFilePath = path.join('data', 'enriched_flights.json');
 
+  // Read and parse the passenger counts file
+  const passengerCountsRawData = await fs.readFile(passengerCountsFilePath, 'utf-8');
+  const passengerCounts = JSON.parse(passengerCountsRawData);
+
+  // Read and parse the enriched flights file
+  const enrichedFlightsRawData = await fs.readFile(enrichedFlightsFilePath, 'utf-8');
+  const enrichedFlights = JSON.parse(enrichedFlightsRawData);
+
+  // Add passenger count to each flight based on flightNumber
+  const enrichedFlightsWithPassengers = enrichedFlights.map(flight => {
+    const passengerCount = passengerCounts[flight.flightNumber];
+    return {
+      ...flight,
+      totalPassengers: passengerCount || 0 // Add totalPassengers key, defaulting to 0 if not found
+    };
+  });
+
+  // Write the updated flights back to the enriched flights file
+  await fs.writeFile(enrichedFlightsFilePath, JSON.stringify(enrichedFlightsWithPassengers, null, 2), 'utf-8');
+  console.log('Enriched flights file has been updated with passenger counts.');
+}
+
+// Helper function to calculate age from birthDate
+function calculateAge(birthDate) {
+  const [day, month, year] = birthDate.split('/').map(part => parseInt(part, 10));
+  const birthDateObject = new Date(year, month - 1, day);
+  const ageDifMs = Date.now() - birthDateObject.getTime();
+  const ageDate = new Date(ageDifMs);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
+}
+
+// Main function to calculate average age per flight
+async function addAverageAgeToFlights() {
+  const ticketsFilePath = path.join('data', 'tickets.json');
+  const passengersFilePath = path.join('data', 'passengers.json');
+  const enrichedFlightsFilePath = path.join('data', 'enriched_flights.json');
+
+  // Read and parse the tickets file
+  const ticketsRawData = await fs.readFile(ticketsFilePath, 'utf-8');
+  const tickets = JSON.parse(ticketsRawData);
+
+  // Read and parse the passengers file
+  const passengersRawData = await fs.readFile(passengersFilePath, 'utf-8');
+  const passengersData = JSON.parse(passengersRawData);
+  const passengers = passengersData.passengers;
+
+  // Create a map of passenger ages
+  const passengerAges = {};
+  passengers.forEach(passenger => {
+    passengerAges[passenger.passengerID] = calculateAge(passenger.birthDate);
+  });
+
+  // Create a map to track ages and counts per flight
+  const flightAges = {};
+  tickets.forEach(ticket => {
+    if (!flightAges[ticket.flightNumber]) {
+      flightAges[ticket.flightNumber] = [];
+    }
+    const age = passengerAges[ticket.passengerID];
+    if (age) {
+      flightAges[ticket.flightNumber].push(age);
+    }
+  });
+
+  // Calculate average ages per flight
+  const averageAges = {};
+  Object.keys(flightAges).forEach(flightNumber => {
+    const ages = flightAges[flightNumber];
+    const averageAge = ages.reduce((sum, age) => sum + age, 0) / ages.length;
+    averageAges[flightNumber] = averageAge;
+  });
+
+  // Read and parse the enriched flights file
+  const enrichedFlightsRawData = await fs.readFile(enrichedFlightsFilePath, 'utf-8');
+  const enrichedFlights = JSON.parse(enrichedFlightsRawData);
+
+  // Add average age to each flight in enriched flights
+  const enrichedFlightsWithAges = enrichedFlights.map(flight => {
+    const averageAge = averageAges[flight.flightNumber];
+    return {
+      ...flight,
+      averageAge: averageAge ? averageAge.toFixed(2) : null // Use toFixed(2) to limit the result to 2 decimal places
+    };
+  });
+
+  // Write the updated flights back to the enriched flights file
+  await fs.writeFile(enrichedFlightsFilePath, JSON.stringify(enrichedFlightsWithAges, null, 2), 'utf-8');
+  console.log('Enriched flights file has been updated with average passenger ages.');
+}
 
   module.exports = {
     countPassengersPerFlight,
-    addAircraftNamesToFlights
+    addAircraftNamesToFlights,
+    addPassengerCountsToFlights,
+    addAverageAgeToFlights
   };
