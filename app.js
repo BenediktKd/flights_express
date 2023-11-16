@@ -327,6 +327,23 @@ app.get('/api/graphics2', async (req, res) => {
   }
 });
 
+// Endpoint to serve graphics3 JSON data (age groups per year)
+app.get('/api/graphics3', async (req, res) => {
+  try {
+      // Define la ruta al archivo graphics3.json
+      const filePath = path.join(__dirname, 'data', 'graphics3.json');
+
+      // Lee y envía el contenido del archivo graphics3.json
+      const data = await fs.readFile(filePath, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+  } catch (error) {
+      // Maneja cualquier error que ocurra durante la lectura del archivo
+      console.error('Error serving graphics3 data:', error);
+      res.status(500).send('Error serving graphics3 data');
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
