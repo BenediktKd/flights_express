@@ -13,6 +13,12 @@ let currentPassengers = [];
 let currentPassengerPage = 1;
 const passengersPerPage = 15;
 
+let currentPassengerSort = {
+    column: null,
+    ascending: true
+};
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // Fetch the airport data first to initialize the map
@@ -302,25 +308,26 @@ function createPassengersTable(passengers = currentPassengers) {
     const tableContainer = document.getElementById('passengers-table-container');
     if (!tableContainer) return;
 
+    tableContainer.innerHTML = ''; // Limpia cualquier contenido anterior
     const table = document.createElement('table');
     table.id = 'passengers-table';
+    
+    // Crear y agregar encabezados de la tabla
     const thead = table.createTHead();
-    const tbody = table.createTBody();
-    tableContainer.innerHTML = ''; // Limpia cualquier contenido anterior
-
-    // Encabezados de la tabla
-    const headers = ['Avatar', 'First Name', 'Last Name', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
     const headerRow = thead.insertRow();
+    const headers = ['Avatar', 'First Name', 'Last Name', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
+
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
         headerRow.appendChild(th);
     });
 
-    // Agrega filas para los pasajeros de la página actual
+    // Crear cuerpo de la tabla y agregar filas para los pasajeros
+    const tbody = table.createTBody();
     pagePassengers.forEach(passenger => {
         const row = tbody.insertRow();
-        row.insertCell().innerHTML = `<img src="${passenger.avatar}" alt="Avatar" style="width:50px;">`;
+        row.insertCell().innerHTML = passenger.avatar ? `<img src="${passenger.avatar}" alt="Avatar" style="width:50px;">` : '';
         row.insertCell().textContent = passenger.firstName;
         row.insertCell().textContent = passenger.lastName;
         row.insertCell().textContent = `${passenger.firstName} ${passenger.lastName}`;
@@ -333,6 +340,7 @@ function createPassengersTable(passengers = currentPassengers) {
 
     tableContainer.appendChild(table);
 }
+
 
 function setupPassengerPagination(totalPassengers = currentPassengers.length) {
     const pageCount = Math.ceil(totalPassengers / passengersPerPage);
@@ -361,6 +369,28 @@ function filterPassengers() {
     currentPassengerPage = 1;
     createPassengersTable(filteredPassengers);
     setupPassengerPagination(filteredPassengers.length);
+}
+
+function sortPassengerTable(sortKey) {
+    if (currentPassengerSort.column === sortKey) {
+        currentPassengerSort.ascending = !currentPassengerSort.ascending;
+    } else {
+        currentPassengerSort = {
+            column: sortKey,
+            ascending: true
+        };
+    }
+
+    currentPassengers.sort((a, b) => {
+        if (a[sortKey] === b[sortKey]) return 0;
+        if (currentPassengerSort.ascending) {
+            return a[sortKey] < b[sortKey] ? -1 : 1;
+        } else {
+            return a[sortKey] > b[sortKey] ? -1 : 1;
+        }
+    });
+
+    createPassengersTable(); // Reconstruye la tabla con los datos ordenados
 }
 
 
