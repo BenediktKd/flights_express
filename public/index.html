@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <!-- Your custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -57,9 +58,21 @@
 
 <div id="passengers-table-container"></div>
 
+<!-- Dropdown para seleccionar el año -->
+<div>
+    <label for="yearSelector">Select Year (Elige un año en el drpdown para que el grafico se actualice):</label>
+    <select id="yearSelector">
+        <!-- Las opciones se llenarán con JavaScript -->
+    </select>
+</div>
+
+<!-- Contenedor para el gráfico -->
+<canvas id="myChart"></canvas>
+
 
 <!-- Leaflet JavaScript -->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Your custom JS -->
 <script src="js/main.js"></script>
 

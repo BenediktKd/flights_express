@@ -1,6 +1,8 @@
 
 let map; // Global map variable
 let polyline; // Global polyline variable
+let graphicsData; // Almacena los datos del gráfico globalmente
+let myChart;     // Almacena la instancia del gráfico globalmente
 let currentFlights = [];
 let currentPage = 1;
 const flightsPerPage = 15;
@@ -20,30 +22,34 @@ let currentPassengerSort = {
 
 
 
+
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Fetch the airport data first to initialize the map
+    // Inicializar el mapa y cargar datos de aeropuertos
     fetch('/api/airports')
         .then(response => response.json())
         .then(airportsData => {
-            // Initialize the map with airport markers
             initializeMap(airportsData);
-
-            // Then fetch the flights data to populate the table
-            fetch('/api/enriched-flights')
-                .then(response => response.json())
-                .then(flights => {
-                    currentFlights = flights.sort((a, b) => {
-                        return a.year - b.year || 
-                               a.month - b.month || 
-                               a.flightNumber.localeCompare(b.flightNumber);
-                    });
-                    displayPage(currentPage);
-                })
-                .catch(error => console.error('Error fetching flights:', error));
+            return fetch('/api/enriched-flights');
         })
-        .catch(error => console.error('Error fetching airports:', error));
+        .then(response => response.json())
+        .then(flights => {
+            currentFlights = flights.sort((a, b) => a.year - b.year || a.month - b.month || a.flightNumber.localeCompare(b.flightNumber));
+            displayPage(currentPage);
+            return fetch('/api/graphics1');
+        })
+        .then(response => response.json())
+        .then(data => {
+            
+            graphicsData = data;
+            fillYearDropdown(); 
+            myChart = initializeChart(); 
+        })
+        .catch(error => console.error('Error:', error));
 
-    // Añadir Event Listener al campo de entrada para filtrar pasajeros automáticamente al escribir
+    document.getElementById('yearSelector').addEventListener('change', function() {
+        updateChart(this.value);
+    });
     document.getElementById('passenger-search-input').addEventListener('input', filterPassengers);
 });
 /////MAP////////////
@@ -419,6 +425,47 @@ function displayErrorMessage(message) {
         errorMessage.textContent = message;
         errorMessage.style.display = 'block';
     }
+}
+
+/////////////////////////GRAFICO 1/////////////////////////////
+function fillYearDropdown() {
+    const yearSelector = document.getElementById('yearSelector');
+    const uniqueYears = [...new Set(graphicsData.map(item => item.year))]; // Obtener años únicos
+
+    uniqueYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelector.appendChild(option);
+    });
+}
+
+function initializeChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    return new Chart(ctx, {
+        type: 'line', // Tipo de gráfico de línea
+        data: {
+            labels: [], // Etiquetas (meses)
+            datasets: [{
+                label: 'Distancia Recorrida',
+                data: [], // Datos de distancia
+                // Estilos adicionales si son necesarios
+            }]
+        },
+        options: {
+            // Opciones del gráfico
+        }
+    });
+}
+
+function updateChart(selectedYear) {
+    const filteredData = graphicsData.filter(item => item.year === selectedYear);
+
+    // Actualizar etiquetas (meses) y datos (distancia) del gráfico
+    myChart.data.labels = filteredData.map(item => item.month);
+    myChart.data.datasets[0].data = filteredData.map(item => item.totalDistance);
+
+    myChart.update(); // Actualizar el gráfico
 }
 
 
