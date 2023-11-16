@@ -283,7 +283,7 @@ function fetchFlightPassengers(flightNumber) {
             currentPassengers = passengers; // Actualiza la lista de pasajeros
             currentPassengerPage = 1; // Restablece a la primera página
             createPassengersTable();
-            setupPassengerPagination();
+            setupPassengerPagination(currentPassengers.length); // Ajustado
             displayLoadingIndicator(false); // Oculta el indicador de carga
         })
         .catch(error => {
@@ -334,7 +334,7 @@ function createPassengersTable(passengers = currentPassengers) {
     tableContainer.appendChild(table);
 }
 
-function setupPassengerPagination(totalPassengers) {
+function setupPassengerPagination(totalPassengers = currentPassengers.length) {
     const pageCount = Math.ceil(totalPassengers / passengersPerPage);
     const paginationContainer = document.querySelector('.passenger-pagination');
     paginationContainer.innerHTML = '';
