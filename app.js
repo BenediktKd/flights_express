@@ -7,7 +7,7 @@ const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsT
 const {generateFlightCoordinatesJson, generateFlightPassengersData} = require('./utils/dataMaper');
 const {convertBirthDates} = require('./utils/dataFixer')
 const {calculateTotalDistancePerMonth, addTotalWeightToGraphics, addAverageHeightToGraphics} =require('./utils/graphics')
-const {calculateTotalFlightsPerAirline} = require('./utils/graphics2')
+const {calculateTotalFlightsPerAirline, calculateTicketTypesPerAirline} = require('./utils/graphics2')
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -187,6 +187,8 @@ async function processAdditionalData() {
 
     await calculateTotalFlightsPerAirline();
 
+    await calculateTicketTypesPerAirline();
+
     
 
 
@@ -305,6 +307,23 @@ app.get('/api/graphics1', async (req, res) => {
       res.status(500).send('Error serving graphics1 data');
   }
 });
+
+app.get('/api/graphics2', async (req, res) => {
+  try {
+      // Define la ruta al archivo graphics2.json
+      const filePath = path.join(__dirname, 'data', 'graphics2.json');
+
+      // Lee y envía el contenido del archivo graphics2.json
+      const data = await fs.readFile(filePath, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+  } catch (error) {
+      // Maneja cualquier error que ocurra durante la lectura del archivo
+      console.error('Error serving graphics2 data:', error);
+      res.status(500).send('Error serving graphics2 data');
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
