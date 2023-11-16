@@ -9,8 +9,6 @@ let currentSort = {
     ascending: true
 };
 
-
-
 document.addEventListener('DOMContentLoaded', function() {
     // Fetch the airport data first to initialize the map
     fetch('/api/airports')
@@ -234,91 +232,6 @@ function filterFlights() {
     // Update the table with the filtered flights
     displayPage(1, filteredFlights); // Reset to the first page when filter changes
 }
-
-/////Passengers//////////////////////////////////////////
-function fetchFlightPassengers(flightNumber) {
-    displayLoadingIndicator(true); // Show loading indicator
-    fetch(`/api/flight-passengers/${flightNumber}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Passengers not found for flight number: ' + flightNumber);
-            }
-            return response.json();
-        })
-        .then(passengers => {
-            displayLoadingIndicator(false); // Hide loading indicator
-            // Aquí llamas a la función para crear y mostrar la tabla de pasajeros
-            createPassengersTable(passengers);
-        })
-        .catch(error => {
-            console.error('Error fetching passengers:', error);
-            displayErrorMessage('Passengers not found.');
-            displayLoadingIndicator(false); // Hide loading indicator
-        });
-}
-// Función para crear y mostrar la tabla de pasajeros
-function createPassengersTable(passengers) {
-    const tableContainer = document.getElementById('passengers-table-container');
-    if (!tableContainer) return;
-
-    // Crear los elementos de la tabla
-    const table = document.createElement('table');
-    table.id = 'passengers-table';
-    const thead = table.createTHead();
-    const tbody = table.createTBody();
-    tableContainer.innerHTML = ''; // Limpiar cualquier contenido anterior
-
-    // Crear y agregar los encabezados de la tabla
-    const headers = ['Avatar', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
-    const headerRow = thead.insertRow();
-    headers.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText;
-        headerRow.appendChild(th);
-    });
-
-    // Agregar filas para cada pasajero
-    passengers.forEach(passenger => {
-        const row = tbody.insertRow();
-        row.insertCell().innerHTML = `<img src="${passenger.avatar}" alt="Avatar" style="width:50px;">`;
-        row.insertCell().textContent = `${passenger.firstName} ${passenger.lastName}`;
-        row.insertCell().textContent = passenger.age;
-        row.insertCell().textContent = passenger.gender;
-        row.insertCell().textContent = `${passenger['weight(kg)']} kg`;
-        row.insertCell().textContent = `${passenger['height(cm)']} cm`;
-        row.insertCell().textContent = passenger.seatNumber;
-    });
-
-    // Agregar la tabla al contenedor
-    tableContainer.appendChild(table);
-}
-
-////////////////////////////UI/////////////////////////////
-function showFlightNumber(flightNumber) {
-    // You might want to create a dedicated area in your HTML to show the selected flight number.
-    // For example, an element with the ID 'selected-flight-number'.
-    // Here's how you can update its content:
-    const flightNumberDisplay = document.getElementById('selected-flight-number');
-    if (flightNumberDisplay) {
-        flightNumberDisplay.textContent = `${flightNumber}`;
-    }
-}
-
-function displayLoadingIndicator(show) {
-    const loadingIndicator = document.getElementById('loading-indicator');
-    if (loadingIndicator) {
-        loadingIndicator.style.display = show ? 'block' : 'none';
-    }
-}
-
-function displayErrorMessage(message) {
-    const errorMessage = document.getElementById('error-message');
-    if (errorMessage) {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
-    }
-}
-
 function setupPagination(totalFlights, flightsPerPage) {
     const pageCount = Math.ceil(totalFlights / flightsPerPage);
     const paginationContainer = document.querySelector('.pagination');
@@ -347,6 +260,95 @@ function setupPagination(totalFlights, flightsPerPage) {
         paginationContainer.appendChild(pageNumber);
     }
 }
+
+/////Passengers//////////////////////////////////////////
+function fetchFlightPassengers(flightNumber) {
+    displayLoadingIndicator(true); // Show loading indicator
+    fetch(`/api/flight-passengers/${flightNumber}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Passengers not found for flight number: ' + flightNumber);
+            }
+            return response.json();
+        })
+        .then(passengers => {
+            displayLoadingIndicator(false); // Hide loading indicator
+            // Aquí llamas a la función para crear y mostrar la tabla de pasajeros
+            createPassengersTable(passengers);
+        })
+        .catch(error => {
+            console.error('Error fetching passengers:', error);
+            displayErrorMessage('Passengers not found.');
+            displayLoadingIndicator(false); // Hide loading indicator
+        });
+}
+// Función para crear y mostrar la tabla de pasajeros
+// Función para crear y mostrar la tabla de pasajeros
+function createPassengersTable(passengers) {
+    const tableContainer = document.getElementById('passengers-table-container');
+    if (!tableContainer) return;
+
+    // Crear los elementos de la tabla
+    const table = document.createElement('table');
+    table.id = 'passengers-table';
+    const thead = table.createTHead();
+    const tbody = table.createTBody();
+    tableContainer.innerHTML = ''; // Limpiar cualquier contenido anterior
+
+    // Crear y agregar los encabezados de la tabla
+    const headers = ['Avatar', 'First Name', 'Last Name', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
+    const headerRow = thead.insertRow();
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+
+    // Agregar filas para cada pasajero
+    passengers.forEach(passenger => {
+        const row = tbody.insertRow();
+        row.insertCell().innerHTML = `<img src="${passenger.avatar}" alt="Avatar" style="width:50px;">`;
+        row.insertCell().textContent = passenger.firstName;
+        row.insertCell().textContent = passenger.lastName;
+        row.insertCell().textContent = `${passenger.firstName} ${passenger.lastName}`; // Nombre completo
+        row.insertCell().textContent = passenger.age;
+        row.insertCell().textContent = passenger.gender;
+        row.insertCell().textContent = `${passenger['weight(kg)']} kg`;
+        row.insertCell().textContent = `${passenger['height(cm)']} cm`;
+        row.insertCell().textContent = passenger.seatNumber;
+    });
+
+    // Agregar la tabla al contenedor
+    tableContainer.appendChild(table);
+}
+
+
+////////////////////////////UI/////////////////////////////
+function showFlightNumber(flightNumber) {
+    // You might want to create a dedicated area in your HTML to show the selected flight number.
+    // For example, an element with the ID 'selected-flight-number'.
+    // Here's how you can update its content:
+    const flightNumberDisplay = document.getElementById('selected-flight-number');
+    if (flightNumberDisplay) {
+        flightNumberDisplay.textContent = `${flightNumber}`;
+    }
+}
+
+function displayLoadingIndicator(show) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+}
+
+function displayErrorMessage(message) {
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+}
+
 
 
 
