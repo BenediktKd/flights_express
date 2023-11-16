@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('passenger-search-input').addEventListener('input', filterPassengers);
 
     initializeChart();
+    initializePieChart();
+    updatePieChart(new Date().getFullYear().toString());
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -441,7 +443,6 @@ function fillYearDropdown() {
         yearSelector.appendChild(option);
     });
 }
-
 function initializeChart() {
     const ctx = document.getElementById('myChart').getContext('2d');
     myChart = new Chart(ctx, {
@@ -484,7 +485,6 @@ function updateChart(selectedYear, selectedFeature) {
 
     myChart.update();
 }
-
 function getFeatureLabel(feature) {
     switch(feature) {
         case 'totalDistance':
@@ -508,6 +508,58 @@ document.getElementById('featureSelector').addEventListener('change', function()
     const selectedYear = document.getElementById('yearSelector').value;
     const selectedFeature = this.value;
     updateChart(selectedYear, selectedFeature);
+});
+
+////////////////////////OIE CHART/////////////////////////
+
+// Función para inicializar el gráfico de pastel
+function initializePieChart() {
+    const ctxPie = document.getElementById('myPieChart').getContext('2d');
+    window.myPieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: [], // Etiquetas de las aerolíneas
+            datasets: [{
+                label: 'Cantidad de Vuelos por Aerolínea',
+                data: [], // Datos de la cantidad de vuelos
+                backgroundColor: [], // Colores de fondo para cada segmento del pastel
+                // Estilos adicionales si son necesarios
+            }]
+        },
+        options: {
+            // Opciones del gráfico de pastel
+        }
+    });
+}
+
+// Función para actualizar el gráfico de pastel
+function updatePieChart(selectedYear) {
+    fetch(`/api/graphics2`)
+        .then(response => response.json())
+        .then(data => {
+            const yearData = data[selectedYear];
+            const airlines = Object.keys(yearData);
+            const flightsCounts = airlines.map(airline => Object.values(yearData[airline]).reduce((a, b) => a + b, 0));
+
+            window.myPieChart.data.labels = airlines;
+            window.myPieChart.data.datasets[0].data = flightsCounts;
+            window.myPieChart.data.datasets[0].backgroundColor = generateRandomColors(airlines.length); // Generar colores aleatorios
+            window.myPieChart.update();
+        })
+        .catch(error => console.error('Error fetching graphics2 data:', error));
+}
+
+// Función para generar colores aleatorios
+function generateRandomColors(count) {
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+        colors.push(`hsl(${Math.random() * 360}, 70%, 50%)`);
+    }
+    return colors;
+}
+
+document.getElementById('yearSelectorPie').addEventListener('change', function() {
+    updatePieChart(this.value);
 });
 
 

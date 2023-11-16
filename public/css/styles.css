@@ -45,3 +45,15 @@ tr:hover {
     /* Your styles for the error message */
     color: red;
 }
+
+.chart-container {
+    width: 400px; /* Establece el ancho deseado */
+    height: 400px; /* Establece el alto deseado */
+    margin: auto; /* Centra el gráfico horizontalmente si es necesario */
+}
+
+/* Estilos adicionales para asegurarse de que el gráfico se ajuste al contenedor */
+.chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
