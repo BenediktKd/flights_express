@@ -59,6 +59,18 @@
 <div id="passengers-table-container"></div>
 
 <!-- Dropdown para seleccionar el año -->
+
+<div>
+    <label for="yearSelectorPie">Select Year for Pie Chart:</label>
+    <select id="yearSelectorPie">
+        <!-- Las opciones se llenarán con JavaScript -->
+    </select>
+</div>
+
+<div class="chart-container">
+    <canvas id="myPieChart"></canvas>
+</div>
+
 <div>
     <label for="yearSelector">Select Year (Elige un año en el drpdown para que el grafico se actualice):</label>
     <label for="featureSelector">Select Feature:</label>
@@ -70,16 +82,6 @@
     <select id="yearSelector">
         <!-- Las opciones se llenarán con JavaScript -->
     </select>
-</div>
-<div>
-    <label for="yearSelectorPie">Select Year for Pie Chart:</label>
-    <select id="yearSelectorPie">
-        <!-- Las opciones se llenarán con JavaScript -->
-    </select>
-</div>
-
-<div class="chart-container">
-    <canvas id="myPieChart"></canvas>
 </div>
 
 <!-- Contenedor para el gráfico -->

@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeChart();
     initializePieChart();
     updatePieChart(new Date().getFullYear().toString());
+    fillYearDropdownPie();
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -557,6 +558,30 @@ function generateRandomColors(count) {
     }
     return colors;
 }
+
+// Función para llenar el dropdown de años para el gráfico de pastel
+function fillYearDropdownPie() {
+    fetch('/api/graphics2')
+        .then(response => response.json())
+        .then(data => {
+            const yearSelectorPie = document.getElementById('yearSelectorPie');
+            const years = Object.keys(data);
+
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelectorPie.appendChild(option);
+            });
+
+            // Inicializar el gráfico de pastel con el primer año disponible
+            if (years.length > 0) {
+                updatePieChart(years[0]);
+            }
+        })
+        .catch(error => console.error('Error fetching graphics2 data:', error));
+}
+
 
 document.getElementById('yearSelectorPie').addEventListener('change', function() {
     updatePieChart(this.value);
