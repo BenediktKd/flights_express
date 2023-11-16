@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(error => console.error('Error fetching flights:', error));
         })
         .catch(error => console.error('Error fetching airports:', error));
-        document.getElementById('passenger-search-input').addEventListener('input', filterPassengers);
+
+    // Añadir Event Listener al campo de entrada para filtrar pasajeros automáticamente al escribir
+    document.getElementById('passenger-search-input').addEventListener('input', filterPassengers);
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -292,10 +294,10 @@ function fetchFlightPassengers(flightNumber) {
 }
 
 // Función para crear y mostrar la tabla de pasajeros
-function createPassengersTable(passengers) {
+function createPassengersTable(passengers = currentPassengers) {
     const startIndex = (currentPassengerPage - 1) * passengersPerPage;
     const endIndex = startIndex + passengersPerPage;
-    const pagePassengers = currentPassengers.slice(startIndex, endIndex);
+    const pagePassengers = passengers.slice(startIndex, endIndex);
 
     const tableContainer = document.getElementById('passengers-table-container');
     if (!tableContainer) return;
@@ -331,33 +333,36 @@ function createPassengersTable(passengers) {
 
     tableContainer.appendChild(table);
 }
-function setupPassengerPagination(totalPassengers = currentPassengers.length) {
-    const pageCount = Math.ceil(currentPassengers.length / passengersPerPage);
-    const paginationContainer = document.querySelector('.passenger-pagination'); // Asegúrate de tener este elemento en tu HTML
+
+function setupPassengerPagination(totalPassengers) {
+    const pageCount = Math.ceil(totalPassengers / passengersPerPage);
+    const paginationContainer = document.querySelector('.passenger-pagination');
     paginationContainer.innerHTML = '';
 
     for (let i = 1; i <= pageCount; i++) {
         const pageNumber = document.createElement('span');
         pageNumber.textContent = i;
         pageNumber.className = 'page-number' + (i === currentPassengerPage ? ' active' : '');
-        pageNumber.addEventListener('click', function() {
+        pageNumber.addEventListener('click', () => {
             currentPassengerPage = i;
-            createPassengersTable();
-            setupPassengerPagination();
+            createPassengersTable(); // Aquí se podría pasar la lista de pasajeros actual, si se desea
         });
         paginationContainer.appendChild(pageNumber);
     }
 }
+
 function filterPassengers() {
     const searchInput = document.getElementById('passenger-search-input').value.toLowerCase();
     const filteredPassengers = currentPassengers.filter(passenger =>
         passenger.firstName.toLowerCase().includes(searchInput) || 
         passenger.lastName.toLowerCase().includes(searchInput)
     );
+
     currentPassengerPage = 1;
     createPassengersTable(filteredPassengers);
     setupPassengerPagination(filteredPassengers.length);
 }
+
 
 
 ////////////////////////////UI/////////////////////////////
