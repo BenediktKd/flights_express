@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePieChart();
     updatePieChart(new Date().getFullYear().toString());
     fillYearDropdownPie();
+    initializePyramidChart();
+    fillYearDropdownPyramid();
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -606,8 +608,78 @@ document.getElementById('featureSelectorPie').addEventListener('change', functio
     updatePieChart(selectedYear, selectedFeature);
 });
 
+function initializePyramidChart() {
+    const ctxPyramid = document.getElementById('myPyramidChart').getContext('2d');
+    window.myPyramidChart = new Chart(ctxPyramid, {
+        type: 'bar',
+        data: {
+            labels: [], // Etiquetas de los grupos de edad
+            datasets: [
+                {
+                    label: 'Male',
+                    data: [], // Datos para hombres
+                    backgroundColor: 'blue'
+                },
+                {
+                    label: 'Female',
+                    data: [], // Datos para mujeres
+                    backgroundColor: 'pink'
+                }
+            ]
+        },
+        options: {
+            scales: {
+                xAxes: [{ stacked: true }],
+                yAxes: [{ stacked: true }]
+            },
+            // Otras opciones si son necesarias
+        }
+    });
+}
 
+function updatePyramidChart(selectedYear) {
+    fetch(`/api/graphics3`)
+        .then(response => response.json())
+        .then(data => {
+            const yearData = data[selectedYear];
+            const ageGroups = Object.keys(yearData).sort();
+            const maleData = ageGroups.map(group => -Math.abs(yearData[group].male)); // Negativo para el lado izquierdo
+            const femaleData = ageGroups.map(group => yearData[group].female);
 
+            window.myPyramidChart.data.labels = ageGroups;
+            window.myPyramidChart.data.datasets[0].data = maleData;
+            window.myPyramidChart.data.datasets[1].data = femaleData;
+            window.myPyramidChart.update();
+        })
+        .catch(error => console.error('Error fetching graphics3 data:', error));
+}
+
+// Función para llenar el dropdown de años para el gráfico de pirámide
+function fillYearDropdownPyramid() {
+    fetch('/api/graphics3')
+        .then(response => response.json())
+        .then(data => {
+            const yearSelectorPyramid = document.getElementById('yearSelectorPyramid');
+            const years = Object.keys(data);
+
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelectorPyramid.appendChild(option);
+            });
+
+            // Inicializar el gráfico de pirámide con el primer año disponible
+            if (years.length > 0) {
+                updatePyramidChart(years[0]);
+            }
+        })
+        .catch(error => console.error('Error fetching graphics3 data:', error));
+}
+
+document.getElementById('yearSelectorPyramid').addEventListener('change', function() {
+    updatePyramidChart(this.value);
+});
 
 
 
