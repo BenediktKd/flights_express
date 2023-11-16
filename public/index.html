@@ -59,7 +59,7 @@
 <div id="passengers-table-container"></div>
 
 <!-- Dropdown para seleccionar el año -->
-
+<h2>Seleccione para que se actualice el grafico</h2>
 <div>
     <label for="yearSelectorPie">Select Year for Pie Chart:</label>
     <select id="yearSelectorPie">
@@ -67,10 +67,22 @@
     </select>
 </div>
 
+<div>
+    <label for="featureSelectorPie">Select Feature:</label>
+    <select id="featureSelectorPie">
+        <option value="total">Total Flights</option>
+        <option value="first class">First Class Flights</option>
+        <option value="economy">Economy Flights</option>
+        <option value="bussines">Business Flights</option>
+    </select>
+</div>
+
 <div class="chart-container">
     <canvas id="myPieChart"></canvas>
 </div>
 
+
+<h2>Seleccione para que se actualice el grafico</h2>
 <div>
     <label for="yearSelector">Select Year (Elige un año en el drpdown para que el grafico se actualice):</label>
     <label for="featureSelector">Select Feature:</label>
