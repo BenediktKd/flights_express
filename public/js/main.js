@@ -20,9 +20,27 @@ let currentPassengerSort = {
     ascending: true
 };
 
+const passengerDataKeys = [
+    'avatar', 'firstName', 'lastName', 'fullName', 'age', 'gender', 'weight', 'height', 'seatNumber'
+];
 
 
 
+// Función para comparar cadenas de texto alfabéticamente
+function compareStrings(a, b, ascending) {
+    if (a < b) {
+      return ascending ? -1 : 1;
+    }
+    if (a > b) {
+      return ascending ? 1 : -1;
+    }
+    return 0;
+  }
+  
+  // Función para comparar números
+  function compareNumbers(a, b, ascending) {
+    return ascending ? a - b : b - a;
+  }
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el mapa y cargar datos de aeropuertos
@@ -315,13 +333,13 @@ function fetchFlightPassengers(flightNumber) {
 
 // Función para crear y mostrar la tabla de pasajeros
 function createPassengersTable(passengers = currentPassengers) {
-    const startIndex = (currentPassengerPage - 1) * passengersPerPage;
+const startIndex = (currentPassengerPage - 1) * passengersPerPage;
     const endIndex = startIndex + passengersPerPage;
     const pagePassengers = passengers.slice(startIndex, endIndex);
 
     const tableContainer = document.getElementById('passengers-table-container');
     if (!tableContainer) return;
-
+  
     tableContainer.innerHTML = ''; // Limpia cualquier contenido anterior
     const table = document.createElement('table');
     table.id = 'passengers-table';
@@ -330,11 +348,11 @@ function createPassengersTable(passengers = currentPassengers) {
     const thead = table.createTHead();
     const headerRow = thead.insertRow();
     const headers = ['Avatar', 'First Name', 'Last Name', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
-
+  
     headers.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText;
-        headerRow.appendChild(th);
+      const th = document.createElement('th');
+      th.textContent = headerText;
+            headerRow.appendChild(th);
     });
 
     // Crear cuerpo de la tabla y agregar filas para los pasajeros
@@ -354,6 +372,36 @@ function createPassengersTable(passengers = currentPassengers) {
 
     tableContainer.appendChild(table);
 }
+
+// Función para comparar valores alfabéticamente
+function alphaCompare(a, b, isAscending) {
+    const dir = isAscending ? 1 : -1;
+    if (a < b) return -1 * dir;
+    if (a > b) return 1 * dir;
+    return 0;
+  }
+  
+  // Función para comparar números
+  function numberCompare(a, b, isAscending) {
+    return (a - b) * (isAscending ? 1 : -1);
+  }
+  
+  // Función para comparar asientos (números seguidos de letras, ej. "12A")
+  function seatCompare(a, b, isAscending) {
+    // Extrae la parte numérica y la letra del asiento, si existe
+    const seatANum = parseInt(a.match(/\d+/g), 10);
+    const seatBNum = parseInt(b.match(/\d+/g), 10);
+    const seatALetter = a.match(/[a-zA-Z]/g) || [];
+    const seatBLetter = b.match(/[a-zA-Z]/g) || [];
+  
+    // Compara primero los números
+    if (seatANum !== seatBNum) {
+      return numberCompare(seatANum, seatBNum, isAscending);
+    }
+    // Si los números son iguales, compara las letras
+    return alphaCompare(seatALetter[0], seatBLetter[0], isAscending);
+  }
+  
 
 
 function setupPassengerPagination(totalPassengers = currentPassengers.length) {
@@ -385,28 +433,58 @@ function filterPassengers() {
     setupPassengerPagination(filteredPassengers.length);
 }
 
+// Función para ordenar la tabla de pasajeros
 function sortPassengerTable(sortKey) {
-    if (currentPassengerSort.column === sortKey) {
-        currentPassengerSort.ascending = !currentPassengerSort.ascending;
-    } else {
-        currentPassengerSort = {
-            column: sortKey,
-            ascending: true
-        };
-    }
-
-    currentPassengers.sort((a, b) => {
-        if (a[sortKey] === b[sortKey]) return 0;
-        if (currentPassengerSort.ascending) {
-            return a[sortKey] < b[sortKey] ? -1 : 1;
-        } else {
-            return a[sortKey] > b[sortKey] ? -1 : 1;
-        }
-    });
-
-    createPassengersTable(); // Reconstruye la tabla con los datos ordenados
-}
-
+    // Alternar entre orden ascendente y descendente
+    const isAscending = currentPassengerSort.column === sortKey ? !currentPassengerSort.ascending : true;
+    currentPassengerSort = { column: sortKey, ascending: isAscending };
+  
+    // Definir cómo extraer el valor según la clave de ordenación
+    const getValue = (passenger, key) => {
+      if (key === 'weight') {
+        // Extrae el número de la cadena 'xx kg'
+        return parseFloat(passenger[key].replace(' kg', ''));
+      } else if (key === 'height') {
+        // Extrae el número de la cadena 'xx cm'
+        return parseFloat(passenger[key].replace(' cm', ''));
+      } else if (key === 'fullName') {
+        // Concatena el nombre y apellido para el ordenamiento
+        return `${passenger.firstName} ${passenger.lastName}`.toLowerCase();
+      } else if (key === 'seatNumber' && passenger[key]) {
+        // Separa los números y las letras del asiento (por ejemplo, '12B')
+        const matches = passenger[key].match(/(\d+)([A-Za-z]*)/);
+        return { number: parseInt(matches[1], 10), letter: matches[2] || '' };
+      }
+      // Para otros casos, devuelve el valor directamente
+      return passenger[key];
+    };
+  
+    // Función de comparación que maneja diferentes tipos de datos
+    const compare = (a, b) => {
+      const valA = getValue(a, sortKey);
+      const valB = getValue(b, sortKey);
+  
+      if (typeof valA === 'object' && valA !== null && 'number' in valA) {
+        // Ordenar primero por número y luego por letra para asientos
+        const numberComparison = compareNumbers(valA.number, valB.number, isAscending);
+        if (numberComparison !== 0) return numberComparison;
+        return compareStrings(valA.letter, valB.letter, isAscending);
+      } else if (typeof valA === 'number') {
+        // Ordenar como número
+        return compareNumbers(valA, valB, isAscending);
+      } else {
+        // Ordenar como cadena de texto
+        return compareStrings(valA, valB, isAscending);
+      }
+    };
+  
+    // Ordenar la lista de pasajeros
+    currentPassengers.sort(compare);
+  
+    // Actualizar la tabla con la lista de pasajeros ordenada
+    createPassengersTable();
+  }
+  
 
 
 ////////////////////////////UI/////////////////////////////
