@@ -61,10 +61,17 @@
 <!-- Dropdown para seleccionar el año -->
 <div>
     <label for="yearSelector">Select Year (Elige un año en el drpdown para que el grafico se actualice):</label>
+    <label for="featureSelector">Select Feature:</label>
+    <select id="featureSelector">
+        <option value="totalDistance">Distancia Recorrida</option>
+        <option value="totalWeight">Peso Transportado</option>
+        <option value="averageHeight">Promedio de Altura</option>
+    </select>
     <select id="yearSelector">
         <!-- Las opciones se llenarán con JavaScript -->
     </select>
 </div>
+
 
 <!-- Contenedor para el gráfico -->
 <canvas id="myChart"></canvas>

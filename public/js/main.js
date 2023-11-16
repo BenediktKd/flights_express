@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateChart(this.value);
     });
     document.getElementById('passenger-search-input').addEventListener('input', filterPassengers);
+
+    initializeChart();
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -442,31 +444,73 @@ function fillYearDropdown() {
 
 function initializeChart() {
     const ctx = document.getElementById('myChart').getContext('2d');
-    return new Chart(ctx, {
-        type: 'line', // Tipo de gráfico de línea
+    myChart = new Chart(ctx, {
+        type: 'line',
         data: {
-            labels: [], // Etiquetas (meses)
+            labels: [],
             datasets: [{
-                label: 'Distancia Recorrida',
-                data: [], // Datos de distancia
-                // Estilos adicionales si son necesarios
+                label: '',
+                data: [],
+                // Estilos adicionales
             }]
         },
         options: {
             // Opciones del gráfico
         }
     });
+
+    const initialYear = new Date().getFullYear().toString(); // Año actual como predeterminado
+    const initialFeature = 'totalDistance'; // Característica predeterminada
+    updateChart(initialYear, initialFeature); // Inicializar el gráfico con datos predeterminados
 }
 
-function updateChart(selectedYear) {
+function updateChart(selectedYear, selectedFeature) {
+    if (!myChart || !graphicsData) {
+        console.error('Chart or graphics data is not initialized');
+        return;
+    }
+
+    // Asegurarse de que la característica seleccionada es válida
+    if (!['totalDistance', 'totalWeight', 'averageHeight'].includes(selectedFeature)) {
+        console.error('Selected feature is not valid');
+        return;
+    }
+
     const filteredData = graphicsData.filter(item => item.year === selectedYear);
 
-    // Actualizar etiquetas (meses) y datos (distancia) del gráfico
     myChart.data.labels = filteredData.map(item => item.month);
-    myChart.data.datasets[0].data = filteredData.map(item => item.totalDistance);
+    myChart.data.datasets[0].label = getFeatureLabel(selectedFeature); // Función para obtener el label adecuado
+    myChart.data.datasets[0].data = filteredData.map(item => Number(item[selectedFeature]));
 
-    myChart.update(); // Actualizar el gráfico
+    myChart.update();
 }
+
+function getFeatureLabel(feature) {
+    switch(feature) {
+        case 'totalDistance':
+            return 'Distancia Recorrida';
+        case 'totalWeight':
+            return 'Peso Transportado';
+        case 'averageHeight':
+            return 'Promedio de Altura';
+        default:
+            return '';
+    }
+}
+
+document.getElementById('yearSelector').addEventListener('change', function() {
+    const selectedYear = this.value;
+    const selectedFeature = document.getElementById('featureSelector').value;
+    updateChart(selectedYear, selectedFeature);
+});
+
+document.getElementById('featureSelector').addEventListener('change', function() {
+    const selectedYear = document.getElementById('yearSelector').value;
+    const selectedFeature = this.value;
+    updateChart(selectedYear, selectedFeature);
+});
+
+
 
 
 
