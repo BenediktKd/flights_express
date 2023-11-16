@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fillYearDropdownPie();
     initializePyramidChart();
     fillYearDropdownPyramid();
+    updateChartVisibility(document.getElementById('chartTypeSelector').value);
 });
 /////MAP////////////
 function initializeMap(airportsData) {
@@ -681,6 +682,34 @@ document.getElementById('yearSelectorPyramid').addEventListener('change', functi
     updatePyramidChart(this.value);
 });
 
+function updateChartVisibility(selectedChart) {
+    const lineChartOptions = document.querySelector('.line-chart-options');
+    const pieChartOptions = document.querySelector('.pie-chart-options');
+    const pyramidChartOptions = document.querySelector('.pyramid-chart-options');
+
+    // Ocultar todas las opciones de gráficos
+    lineChartOptions.style.display = 'none';
+    pieChartOptions.style.display = 'none';
+    pyramidChartOptions.style.display = 'none';
+
+    // Mostrar las opciones del gráfico seleccionado
+    switch(selectedChart) {
+        case 'lineChart':
+            lineChartOptions.style.display = 'block';
+            break;
+        case 'pieChart':
+            pieChartOptions.style.display = 'block';
+            break;
+        case 'pyramidChart':
+            pyramidChartOptions.style.display = 'block';
+            break;
+    }
+}
+
+// Event listener para el selector de tipo de gráfico
+document.getElementById('chartTypeSelector').addEventListener('change', function() {
+    updateChartVisibility(this.value);
+});
 
 
 

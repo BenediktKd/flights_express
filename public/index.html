@@ -58,6 +58,28 @@
 
 <div id="passengers-table-container"></div>
 
+
+
+
+
+
+
+<div>
+    <label for="chartTypeSelector">Select Chart Type:</label>
+    <select id="chartTypeSelector">
+        <option value="lineChart">Line Chart</option>
+        <option value="pieChart">Pie Chart</option>
+        <option value="pyramidChart">Population Pyramid Chart</option>
+    </select>
+</div>
+
+<!-- Contenedores de gráficos y opciones aquí... -->
+
+
+
+
+
+<div class="pyramid-chart-options" style="display: none;">
 <h2>Seleccione para que se actualice el grafico(de 75 años y más es un grupo entero)</h2>
 <div>
     <label for="yearSelectorPyramid">Select Year for Population Pyramid:</label>
@@ -68,7 +90,12 @@
 <div class="chart-container">
     <canvas id="myPyramidChart"></canvas>
 </div>
+</div>
 
+
+
+
+<div class="pie-chart-options" style="display: none;">
 <!-- Dropdown para seleccionar el año -->
 <h2>Seleccione para que se actualice el grafico</h2>
 <div>
@@ -77,6 +104,7 @@
         <!-- Las opciones se llenarán con JavaScript -->
     </select>
 </div>
+
 
 <div>
     <label for="featureSelectorPie">Select Feature:</label>
@@ -87,15 +115,17 @@
         <option value="bussines">Business Flights</option>
     </select>
 </div>
-
 <div class="chart-container">
     <canvas id="myPieChart"></canvas>
 </div>
+</div>
 
 
+
+<div class="line-chart-options">
 <h2>Seleccione para que se actualice el grafico</h2>
 <div>
-    <label for="yearSelector">Select Year (Elige un año en el drpdown para que el grafico se actualice):</label>
+    <label for="yearSelector">Select Year (Elige un año en el dropdown para que el grafico se actualice):</label>
     <label for="featureSelector">Select Feature:</label>
     <select id="featureSelector">
         <option value="totalDistance">Distancia Recorrida</option>
@@ -106,10 +136,12 @@
         <!-- Las opciones se llenarán con JavaScript -->
     </select>
 </div>
+<canvas id="myChart"></canvas>
+</div>
 
 <!-- Contenedor para el gráfico -->
 <canvas id="myChart"></canvas>
-
+</div>
 
 
 <!-- Leaflet JavaScript -->
