@@ -7,6 +7,7 @@ const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsT
 const {generateFlightCoordinatesJson, generateFlightPassengersData} = require('./utils/dataMaper');
 const {convertBirthDates} = require('./utils/dataFixer')
 const {calculateTotalDistancePerMonth, addTotalWeightToGraphics, addAverageHeightToGraphics} =require('./utils/graphics')
+const {calculateTotalFlightsPerAirline} = require('./utils/graphics2')
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -183,6 +184,8 @@ async function processAdditionalData() {
     await addTotalWeightToGraphics();
 
     await addAverageHeightToGraphics();
+
+    await calculateTotalFlightsPerAirline();
 
     
 
