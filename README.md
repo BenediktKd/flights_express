@@ -39,6 +39,10 @@ Comno el titulo era grafico de linea, hice un grafico de linea por eso
 ## Vista Gráficos, gráfico de pie o torta
 - ✅ Logrado
 
+# Referencias
+
+OpenAI. (2022). ChatGPT. https://www.openai.com/
+
 ## Vista Gráficos, gráfico pirámide de población
 Grafico en el que está agrupado de 75 años y más. Los valores del male salen negativos, pero está bien la cantidad. Es solo de referencia al grafico ese valor negativo. 
 - ✅ Logrado
