@@ -112,6 +112,7 @@ function createFlightsTable(flights) {
             // Call a function to handle the click event
             showFlightNumber(flight.flightNumber); // Function to show the flight number
             fetchFlightCoordinates(flight.flightNumber);
+            fetchFlightPassengers(flight.flightNumber);
         });
 
         dataKeys.forEach(key => {
@@ -122,6 +123,44 @@ function createFlightsTable(flights) {
 
     return table;
 }
+
+// Función para crear y mostrar la tabla de pasajeros
+function createPassengersTable(passengers) {
+    const tableContainer = document.getElementById('passengers-table-container');
+    if (!tableContainer) return;
+
+    // Crear los elementos de la tabla
+    const table = document.createElement('table');
+    table.id = 'passengers-table';
+    const thead = table.createTHead();
+    const tbody = table.createTBody();
+    tableContainer.innerHTML = ''; // Limpiar cualquier contenido anterior
+
+    // Crear y agregar los encabezados de la tabla
+    const headers = ['Avatar', 'Full Name', 'Age', 'Gender', 'Weight', 'Height', 'Seat Number'];
+    const headerRow = thead.insertRow();
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+
+    // Agregar filas para cada pasajero
+    passengers.forEach(passenger => {
+        const row = tbody.insertRow();
+        row.insertCell().innerHTML = `<img src="${passenger.avatar}" alt="Avatar" style="width:50px;">`;
+        row.insertCell().textContent = `${passenger.firstName} ${passenger.lastName}`;
+        row.insertCell().textContent = passenger.age;
+        row.insertCell().textContent = passenger.gender;
+        row.insertCell().textContent = `${passenger['weight(kg)']} kg`;
+        row.insertCell().textContent = `${passenger['height(cm)']} cm`;
+        row.insertCell().textContent = passenger.seatNumber;
+    });
+
+    // Agregar la tabla al contenedor
+    tableContainer.appendChild(table);
+}
+
 
 function showFlightNumber(flightNumber) {
     // You might want to create a dedicated area in your HTML to show the selected flight number.
@@ -152,6 +191,28 @@ function fetchFlightCoordinates(flightNumber) {
         .catch(error => {
             console.error('Error fetching coordinates:', error);
             displayErrorMessage('Coordinates not found.');
+            displayLoadingIndicator(false); // Hide loading indicator
+        });
+}
+
+// Function to fetch and print flight passengers data when a row is clicked
+function fetchFlightPassengers(flightNumber) {
+    displayLoadingIndicator(true); // Show loading indicator
+    fetch(`/api/flight-passengers/${flightNumber}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Passengers not found for flight number: ' + flightNumber);
+            }
+            return response.json();
+        })
+        .then(passengers => {
+            displayLoadingIndicator(false); // Hide loading indicator
+            // Aquí llamas a la función para crear y mostrar la tabla de pasajeros
+            createPassengersTable(passengers);
+        })
+        .catch(error => {
+            console.error('Error fetching passengers:', error);
+            displayErrorMessage('Passengers not found.');
             displayLoadingIndicator(false); // Hide loading indicator
         });
 }

@@ -262,20 +262,23 @@ app.get('/api/flight-passengers/:flightNumber', async (req, res) => {
   const flightPassengersPath = path.join(__dirname, 'data', 'flight_passengers.json');
   
   try {
+    // Lee el archivo JSON que contiene los datos de los pasajeros
     const data = await fs.readFile(flightPassengersPath, 'utf8');
     const passengers = JSON.parse(data);
-    
-    // Access the passengers array using the flight number
-    const passengersArray = passengers[flightNumber];
 
+    // Busca los pasajeros para el número de vuelo proporcionado
+    const passengersArray = passengers[flightNumber];
     if (!passengersArray) {
-      return res.status(404).json({ message: 'Flight number not found' });
+      // Si no se encuentran pasajeros para el número de vuelo, envía un estado 404
+      return res.status(404).json({ message: `Flight number ${flightNumber} not found` });
     }
-    
-    res.json(passengersArray); // Send the array of passengers for the flight number
+
+    // Si se encuentran pasajeros, envía los datos de los pasajeros
+    res.json(passengersArray);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    // Si ocurre algún error durante la lectura del archivo o el procesamiento, envía un estado 500
+    console.error('Error fetching flight passengers:', error);
+    res.status(500).json({ message: `Internal server error: ${error.message}` });
   }
 });
 
