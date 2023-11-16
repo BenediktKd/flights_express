@@ -6,6 +6,7 @@ const { countPassengersPerFlight, addAircraftNamesToFlights, addPassengerCountsT
    addDistancesToFlights, enrichFlightsWithCityNames} = require('./utils/dataCounter');
 const {generateFlightCoordinatesJson, generateFlightPassengersData} = require('./utils/dataMaper');
 const {convertBirthDates} = require('./utils/dataFixer')
+const {calculateTotalDistancePerMonth, addTotalWeightToGraphics, addAverageHeightToGraphics} =require('./utils/graphics')
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -133,7 +134,7 @@ async function downloadAndProcessData() {
     await downloadAndProcessPassengersYAML();
     await downloadAndProcessTicketsCSV();
 
-    await generateFlightCoordinatesJson();
+    
 
     
 
@@ -173,7 +174,15 @@ async function processAdditionalData() {
 
     await enrichFlightsWithCityNames();
 
+    await generateFlightCoordinatesJson();
+
     await generateFlightPassengersData();
+
+    await calculateTotalDistancePerMonth();
+
+    await addTotalWeightToGraphics();
+
+    await addAverageHeightToGraphics();
 
     
 
@@ -282,7 +291,17 @@ app.get('/api/flight-passengers/:flightNumber', async (req, res) => {
   }
 });
 
-
+// Endpoint to serve graphics1 JSON data
+app.get('/api/graphics1', async (req, res) => {
+  try {
+      const data = await fs.readFile(path.join(__dirname, 'data', 'graphics1.json'), 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+  } catch (error) {
+      console.error('Error serving graphics1 data:', error);
+      res.status(500).send('Error serving graphics1 data');
+  }
+});
 
 // Start the server
 const PORT = process.env.PORT || 3000;
