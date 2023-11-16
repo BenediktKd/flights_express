@@ -534,21 +534,32 @@ function initializePieChart() {
 }
 
 // Función para actualizar el gráfico de pastel
-function updatePieChart(selectedYear) {
+function updatePieChart(selectedYear, selectedFeature) {
     fetch(`/api/graphics2`)
         .then(response => response.json())
         .then(data => {
             const yearData = data[selectedYear];
             const airlines = Object.keys(yearData);
-            const flightsCounts = airlines.map(airline => Object.values(yearData[airline]).reduce((a, b) => a + b, 0));
+            let flightsCounts;
+
+            if (selectedFeature === 'total') {
+                flightsCounts = airlines.map(airline => 
+                    Object.values(yearData[airline]).reduce((a, b) => a + b, 0)
+                );
+            } else {
+                flightsCounts = airlines.map(airline => 
+                    yearData[airline][selectedFeature] || 0
+                );
+            }
 
             window.myPieChart.data.labels = airlines;
             window.myPieChart.data.datasets[0].data = flightsCounts;
-            window.myPieChart.data.datasets[0].backgroundColor = generateRandomColors(airlines.length); // Generar colores aleatorios
+            window.myPieChart.data.datasets[0].backgroundColor = generateRandomColors(airlines.length);
             window.myPieChart.update();
         })
         .catch(error => console.error('Error fetching graphics2 data:', error));
 }
+
 
 // Función para generar colores aleatorios
 function generateRandomColors(count) {
@@ -584,8 +595,17 @@ function fillYearDropdownPie() {
 
 
 document.getElementById('yearSelectorPie').addEventListener('change', function() {
-    updatePieChart(this.value);
+    const selectedYear = this.value;
+    const selectedFeature = document.getElementById('featureSelectorPie').value;
+    updatePieChart(selectedYear, selectedFeature);
 });
+
+document.getElementById('featureSelectorPie').addEventListener('change', function() {
+    const selectedYear = document.getElementById('yearSelectorPie').value;
+    const selectedFeature = this.value;
+    updatePieChart(selectedYear, selectedFeature);
+});
+
 
 
 
