@@ -8,6 +8,7 @@ const {generateFlightCoordinatesJson, generateFlightPassengersData} = require('.
 const {convertBirthDates} = require('./utils/dataFixer')
 const {calculateTotalDistancePerMonth, addTotalWeightToGraphics, addAverageHeightToGraphics} =require('./utils/graphics')
 const {calculateTotalFlightsPerAirline, calculateTicketTypesPerAirline} = require('./utils/graphics2')
+const {calculateAgeGroupsPerYear} = require('./utils/graphics3')
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -188,6 +189,8 @@ async function processAdditionalData() {
     await calculateTotalFlightsPerAirline();
 
     await calculateTicketTypesPerAirline();
+
+    await calculateAgeGroupsPerYear();
 
     
 
